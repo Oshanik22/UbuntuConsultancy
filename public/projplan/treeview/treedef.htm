@@ -1,0 +1,1147 @@
+<html>
+<head>
+<title>Treeview</title>
+
+<script language="JavaScript1.1">
+<!--
+
+var menuItems = new Array();
+var itemIndex = new Array();
+var sDir=self.location.href;
+var sThisDir=sDir.substring(0,sDir.lastIndexOf('/')+1);
+var curItemID = 0;
+
+function selectItem(name) {
+
+    for (var i = 0; i < itemIndex.length; i++) {
+	     if (menuItems[itemIndex[i]].name==name) {
+                 performActions(name);
+                 break;               
+             }
+    }
+}
+
+function addItem(item) {
+	var itemCount = this.items.length;
+	this.items[itemCount] = item;
+	if (this.imageType == "EPS") {
+            this.imageName = "eNodeOff.gif";
+	}
+	else if (this.imageType == "PROJECT") {
+            this.imageName = "pNodeOff.gif";
+	}
+	else {
+            this.imageName = "NodeOff.gif";
+	}
+}
+
+function show() {
+	this.isVisible = true;
+}
+
+
+function hide() {
+	this.isVisible = false;
+}
+
+function expand() {
+	for (var i = 0; i < this.items.length; i++) {
+		var item = this.items[i];
+		item.show();
+	}
+	this.isOn = true;
+	if (this.imageType == "EPS") {
+	    this.imageName="eNodeOn.gif";
+	}
+	else if (this.imageType == "PROJECT") {
+	    this.imageName="pNodeOn.gif";
+	}
+	else {
+	    this.imageName="NodeOn.gif";
+	}
+}
+
+
+function shrink() {
+	for (var i = 0; i < this.items.length; i++) {
+		var item = this.items[i];
+		if (item.items.length > 0) {
+			if (item.isOn) {
+				item.shrink();
+			}
+		}
+		item.hide();
+	}
+	this.isOn = false;
+
+	if (this.imageType == "EPS") {
+            this.imageName = "eNodeOff.gif";
+	}
+	else if (this.imageType == "PROJECT") {
+            this.imageName = "pNodeOff.gif";
+	}
+	else {
+            this.imageName = "NodeOff.gif";
+	}
+}
+
+
+function link() {
+	this.frame.location = this.hyperLink;
+}
+
+function menuItem(parent, name, text, hlink, frame, sbarmsg, assigned, type) {
+	this.parent = parent;
+	this.name = name;
+	this.imageType = type;
+	if (this.imageType == "EPS") {
+	    this.imageName="eNode.gif";
+	}
+	else if (this.imageType == "PROJECT") {
+	    this.imageName="pNode.gif";
+	}
+	else {
+	    this.imageName="node.gif";
+	}
+	this.imageWidth = 25;
+	this.imageHeight = 16;
+	this.text = text;
+	this.hyperLink = hlink;
+	this.frame = frame;
+	this.statusBarMessage = sbarmsg;
+
+	/* Indented */
+	this.chainPos = 0;
+	if (this.parent == "") {
+		this.isVisible = true;
+	}
+	else {
+		this.isVisible = false;
+		var temp = this;
+		while (temp.parent != "") {
+			this.chainPos++;
+			temp = menuItems[temp.parent];
+		}
+	}
+	this.isOn = false;
+	this.items = new Array();
+	this.addItem = addItem;
+	this.show = show;
+	this.hide = hide;
+	this.expand = expand;
+	this.shrink = shrink;
+	this.link = link;
+	var count = itemIndex.length;
+	itemIndex[count] = this.name;
+	menuItems[this.name] = this;
+	if (this.parent != "") {
+		menuItems[this.parent].addItem(this);
+	}
+}
+	
+function performActions(name) {
+	var item = menuItems[name];
+	curItemID = name;
+	parent.parent.DisplayArea.Options.CurrentObjectID = name;
+	if (item.items.length > 0) {  // Indicating this has sub menuItems
+		if (item.isOn) { item.shrink(); }
+		else { item.expand(); }
+	}
+
+	if (item.parent!="") {
+	    expandUpTree( item )
+	}
+
+	reloadWebPage();
+	if (item.hyperLink != "" ) {
+                item.hyperLink = "../"+parent.parent.DisplayArea.Options.CurrentDir+name+".htm";
+                item.link();
+        }
+}
+
+function expandUpTree( item ) {
+    var parent_item = menuItems[item.parent];
+    if ( parent_item.isOn == false ) {
+      parent_item.expand(); }
+    if (parent_item.parent!="") {
+         expandUpTree( parent_item ); }
+}
+
+
+function reloadWebPage() {
+	parent.tree.document.clear();
+	parent.tree.document.write("<HTML><HEAD>\n");
+	parent.tree.document.write("<style>\n");
+	parent.tree.document.write("<!..\n");
+	parent.tree.document.write("A {text-decoration: none}\n");
+	parent.tree.document.write("..>\n");
+	parent.tree.document.write("</style>\n");
+	parent.tree.document.write("</HEAD>\n");
+	parent.tree.document.write("<body bgcolor=#FFFFFF >\n");
+	parent.tree.document.write("<font face=arial size=4><b>WBS</b></font>");
+	parent.tree.document.write("<table border=0 width=100% height=100%><tr><td valign=top nowrap>");
+	parent.tree.document.write("<font face='Arial' size='-2'>\n");
+	for (var i = 0; i < itemIndex.length; i++) {
+		var item = menuItems[itemIndex[i]];
+		if (item.isVisible) {
+			for (var i2 = 0; i2 < item.chainPos; i2++) {
+				parent.tree.document.write("&nbsp; &nbsp; &nbsp; &nbsp; ");
+			}
+			parent.tree.document.write("<a href='javascript:parent.treedef.performActions(\"" + item.name + "\");' onMouseOver=\"self.status='';return true\">");
+			parent.tree.document.write("<img src='" + sThisDir + item.imageName + "' name='" + item.name + "' ");
+			parent.tree.document.write("width=" + item.imageWidth + " height=" + item.imageHeight+ " ");
+			parent.tree.document.write("border=0 align=top>");
+
+ 	        	if (curItemID == item.name) {
+   				parent.tree.document.write("<font color=#0000FF> " + item.text + "</font></a><br>\n");
+			}
+			else {
+   				parent.tree.document.write("<font color=#000000> " + item.text + "</font></a><br>\n");
+			}
+		}
+	}
+	parent.tree.document.write("</font>");
+	parent.tree.document.write("</td></tr><tr><td valign=bottom align=left>");
+	parent.tree.document.write("<font face=Arial size=-2>\n");
+	parent.tree.document.write("</td></tr></table>");
+	parent.tree.document.write("</BODY></HTML>\n");
+	parent.tree.document.close();
+	if (curItemID != null)
+        parent.tree.location.href = parent.tree.location.href + "#" + curItemID;
+}
+function setUp()
+{
+new menuItem("", "26261", "UB4SKT-Jaisalmer Station Redevelopment", "./detail/26261.htm", parent.parent.DisplayArea.Content, "26261", "","PROJECT");
+new menuItem("26261", "26266", "PM-A-LOA, SIGNING CONTRACT, RIGHT OF WAY, MASTER PLAN", "./detail/26266.htm", parent.parent.DisplayArea.Content, "26266", "","WBS");
+new menuItem("26266", "26289", "Issue of letter of acceptance by Authority", "./detail/26289.htm", parent.parent.DisplayArea.Content, "26289", "","WBS");
+new menuItem("26266", "26290", "Submission of Performance Gurantee by Contractor", "./detail/26290.htm", parent.parent.DisplayArea.Content, "26290", "","WBS");
+new menuItem("26266", "26291", "Signining of Contract Agreement", "./detail/26291.htm", parent.parent.DisplayArea.Content, "26291", "","WBS");
+new menuItem("26266", "26292", "Handing over of Right of Way by authority", "./detail/26292.htm", parent.parent.DisplayArea.Content, "26292", "","WBS");
+new menuItem("26266", "26293", "Appointment of Design Director", "./detail/26293.htm", parent.parent.DisplayArea.Content, "26293", "","WBS");
+new menuItem("26266", "26294", "Appointment of Proof Checking authority", "./detail/26294.htm", parent.parent.DisplayArea.Content, "26294", "","WBS");
+new menuItem("26266", "26295", "Appointment of Safety Director", "./detail/26295.htm", parent.parent.DisplayArea.Content, "26295", "","WBS");
+new menuItem("26266", "26296", "Appointment of Architect and other consultants for Green Buildings etc", "./detail/26296.htm", parent.parent.DisplayArea.Content, "26296", "","WBS");
+new menuItem("26266", "26297", "Finalisation of Master Plan by authority", "./detail/26297.htm", parent.parent.DisplayArea.Content, "26297", "","WBS");
+new menuItem("26266", "26298", "Appointed date fixing i.e. the &quotD&quot", "./detail/26298.htm", parent.parent.DisplayArea.Content, "26298", "","WBS");
+new menuItem("26266", "26299", "End of Preliminary Formalities of handing over of site", "./detail/26299.htm", parent.parent.DisplayArea.Content, "26299", "","WBS");
+new menuItem("26261", "26267", "PM-B-DESIGNING, PLANNING AND SITE ESTABLISHMENT", "./detail/26267.htm", parent.parent.DisplayArea.Content, "26267", "","WBS");
+new menuItem("26267", "26300", "Milestone Start ", "./detail/26300.htm", parent.parent.DisplayArea.Content, "26300", "","WBS");
+new menuItem("26267", "26301", "Soil Investigation and its report  ", "./detail/26301.htm", parent.parent.DisplayArea.Content, "26301", "","WBS");
+new menuItem("26267", "26302", "detailed site digital survey", "./detail/26302.htm", parent.parent.DisplayArea.Content, "26302", "","WBS");
+new menuItem("26267", "26303", "recording of the levels,", "./detail/26303.htm", parent.parent.DisplayArea.Content, "26303", "","WBS");
+new menuItem("26267", "26304", "detailed Architectural drawings", "./detail/26304.htm", parent.parent.DisplayArea.Content, "26304", "","WBS");
+new menuItem("26267", "26305", "Structural Design of foundation & whole structure", "./detail/26305.htm", parent.parent.DisplayArea.Content, "26305", "","WBS");
+new menuItem("26267", "26306", "Submission of detailed drawings of services", "./detail/26306.htm", parent.parent.DisplayArea.Content, "26306", "","WBS");
+new menuItem("26267", "26307", "approved from local bodies/authorities and obtaining permission to start the work", "./detail/26307.htm", parent.parent.DisplayArea.Content, "26307", "","WBS");
+new menuItem("26267", "26308", "Site establishment activities like and ", "./detail/26308.htm", parent.parent.DisplayArea.Content, "26308", "","WBS");
+new menuItem("26308", "26608", " construction of site office, staff room, conference room, laboratory, labour huts,", "./detail/26608.htm", parent.parent.DisplayArea.Content, "26608", "","WBS");
+new menuItem("26308", "26609", " installation of batching plant, installation of casting yard, approval of design mix,", "./detail/26609.htm", parent.parent.DisplayArea.Content, "26609", "","WBS");
+new menuItem("26308", "26610", " steel yard, cement godown, shifting of T & P,", "./detail/26610.htm", parent.parent.DisplayArea.Content, "26610", "","WBS");
+new menuItem("26308", "26611", " barricading of the construction area", "./detail/26611.htm", parent.parent.DisplayArea.Content, "26611", "","WBS");
+new menuItem("26308", "26612", "all the remaining mobilizing activities", "./detail/26612.htm", parent.parent.DisplayArea.Content, "26612", "","WBS");
+new menuItem("26267", "26309", "Work of demolition of existing structure", "./detail/26309.htm", parent.parent.DisplayArea.Content, "26309", "","WBS");
+new menuItem("26267", "26310", "Issuance of GFC drawings for work", "./detail/26310.htm", parent.parent.DisplayArea.Content, "26310", "","WBS");
+new menuItem("26267", "26311", "Milestone End", "./detail/26311.htm", parent.parent.DisplayArea.Content, "26311", "","WBS");
+new menuItem("26267", "26312", "PAYT-On approval of Design Basis Report for Civil, Architectural and MEPF", "./detail/26312.htm", parent.parent.DisplayArea.Content, "26312", "","WBS");
+new menuItem("26267", "26313", "PAYT-On approval of General Arrangement Drawings, Method statement", "./detail/26313.htm", parent.parent.DisplayArea.Content, "26313", "","WBS");
+new menuItem("26267", "26314", "PAYT-On approval of design for Architectural, MEPF, Vibration, Acoustics, façade, Horticulture / Lan", "./detail/26314.htm", parent.parent.DisplayArea.Content, "26314", "","WBS");
+new menuItem("26267", "27199", "End of Milestone B", "./detail/27199.htm", parent.parent.DisplayArea.Content, "27199", "","WBS");
+new menuItem("26267", "26315", "COS-Instructions from AE", "./detail/26315.htm", parent.parent.DisplayArea.Content, "26315", "","WBS");
+new menuItem("26267", "26316", "PAYT-For Change of Scope", "./detail/26316.htm", parent.parent.DisplayArea.Content, "26316", "","WBS");
+new menuItem("26261", "26268", "PM-C-CONCOURSE", "./detail/26268.htm", parent.parent.DisplayArea.Content, "26268", "","WBS");
+new menuItem("26268", "26317", "Milestone Start ", "./detail/26317.htm", parent.parent.DisplayArea.Content, "26317", "","WBS");
+new menuItem("26268", "26318", "Submission and approval of designs and drawings ", "./detail/26318.htm", parent.parent.DisplayArea.Content, "26318", "","WBS");
+new menuItem("26268", "26319", "PAYT-Approval of Detailed Design and Drawings", "./detail/26319.htm", parent.parent.DisplayArea.Content, "26319", "","WBS");
+new menuItem("26268", "26320", "Foundation work (open foundations / pile foundations including pile caps) and testing, up to platfor", "./detail/26320.htm", parent.parent.DisplayArea.Content, "26320", "","WBS");
+new menuItem("26268", "26321", "PAYT-On completion of Foundation work (open foundations / pile foundations including pile caps) and ", "./detail/26321.htm", parent.parent.DisplayArea.Content, "26321", "","WBS");
+new menuItem("26268", "26322", "Superstructural work of concourse from ground level to concourse level, ", "./detail/26322.htm", parent.parent.DisplayArea.Content, "26322", "","WBS");
+new menuItem("26322", "26613", "columns, slab, deck sheet, all structural work including roofing of the concourse", "./detail/26613.htm", parent.parent.DisplayArea.Content, "26613", "","WBS");
+new menuItem("26322", "26614", "slab", "./detail/26614.htm", parent.parent.DisplayArea.Content, "26614", "","WBS");
+new menuItem("26322", "26615", "deck", "./detail/26615.htm", parent.parent.DisplayArea.Content, "26615", "","WBS");
+new menuItem("26322", "26616", "roofing ", "./detail/26616.htm", parent.parent.DisplayArea.Content, "26616", "","WBS");
+new menuItem("26268", "26323", "PAYT-On completion of columns, slab, deck sheet, all structural work including roofing of the concou", "./detail/26323.htm", parent.parent.DisplayArea.Content, "26323", "","WBS");
+new menuItem("26268", "26324", "Floor finishes, stairs, connection with adjacent FOB, retails, kiosk, railing, cladding work, facade", "./detail/26324.htm", parent.parent.DisplayArea.Content, "26324", "","WBS");
+new menuItem("26324", "26617", "Floor finishes", "./detail/26617.htm", parent.parent.DisplayArea.Content, "26617", "","WBS");
+new menuItem("26324", "26618", "stairs", "./detail/26618.htm", parent.parent.DisplayArea.Content, "26618", "","WBS");
+new menuItem("26324", "26619", "connection with adjacent FOB", "./detail/26619.htm", parent.parent.DisplayArea.Content, "26619", "","WBS");
+new menuItem("26324", "26620", "retails", "./detail/26620.htm", parent.parent.DisplayArea.Content, "26620", "","WBS");
+new menuItem("26324", "26621", "kiosk,", "./detail/26621.htm", parent.parent.DisplayArea.Content, "26621", "","WBS");
+new menuItem("26324", "26622", "railing", "./detail/26622.htm", parent.parent.DisplayArea.Content, "26622", "","WBS");
+new menuItem("26324", "26623", "cladding work", "./detail/26623.htm", parent.parent.DisplayArea.Content, "26623", "","WBS");
+new menuItem("26324", "26624", "facade work", "./detail/26624.htm", parent.parent.DisplayArea.Content, "26624", "","WBS");
+new menuItem("26268", "26325", "PAYT-On completion of floor finishes, stairs, connection with adjacent FOB, retails, kiosk, railing,", "./detail/26325.htm", parent.parent.DisplayArea.Content, "26325", "","WBS");
+new menuItem("26268", "26326", "E&M Works as under", "./detail/26326.htm", parent.parent.DisplayArea.Content, "26326", "","WBS");
+new menuItem("26326", "26625", "electric works,", "./detail/26625.htm", parent.parent.DisplayArea.Content, "26625", "","WBS");
+new menuItem("26326", "26626", "lifts/escalators,", "./detail/26626.htm", parent.parent.DisplayArea.Content, "26626", "","WBS");
+new menuItem("26326", "26627", "markings,", "./detail/26627.htm", parent.parent.DisplayArea.Content, "26627", "","WBS");
+new menuItem("26326", "26628", "PA system", "./detail/26628.htm", parent.parent.DisplayArea.Content, "26628", "","WBS");
+new menuItem("26326", "26629", "CCTV", "./detail/26629.htm", parent.parent.DisplayArea.Content, "26629", "","WBS");
+new menuItem("26326", "26630", "Displays", "./detail/26630.htm", parent.parent.DisplayArea.Content, "26630", "","WBS");
+new menuItem("26326", "26631", "WiFi", "./detail/26631.htm", parent.parent.DisplayArea.Content, "26631", "","WBS");
+new menuItem("26326", "26632", "IPIS", "./detail/26632.htm", parent.parent.DisplayArea.Content, "26632", "","WBS");
+new menuItem("26326", "26633", "Digital Clocks", "./detail/26633.htm", parent.parent.DisplayArea.Content, "26633", "","WBS");
+new menuItem("26326", "26634", "signages", "./detail/26634.htm", parent.parent.DisplayArea.Content, "26634", "","WBS");
+new menuItem("26326", "26635", "telecom works", "./detail/26635.htm", parent.parent.DisplayArea.Content, "26635", "","WBS");
+new menuItem("26326", "26636", "firefighting works etc", "./detail/26636.htm", parent.parent.DisplayArea.Content, "26636", "","WBS");
+new menuItem("26268", "26327", "PAYT-On completion of related electric works, lifts/escalators, markings, PA system, CCTV, Displays,", "./detail/26327.htm", parent.parent.DisplayArea.Content, "26327", "","WBS");
+new menuItem("26268", "26328", "Completion, Commissioning, Testing, obtaining necessary NOC’s and handing over to Authority", "./detail/26328.htm", parent.parent.DisplayArea.Content, "26328", "","WBS");
+new menuItem("26328", "26637", "Commissioning, ", "./detail/26637.htm", parent.parent.DisplayArea.Content, "26637", "","WBS");
+new menuItem("26328", "26638", "Testing, ", "./detail/26638.htm", parent.parent.DisplayArea.Content, "26638", "","WBS");
+new menuItem("26328", "26639", "obtaining necessary NOC’s", "./detail/26639.htm", parent.parent.DisplayArea.Content, "26639", "","WBS");
+new menuItem("26328", "26640", "handing over to Authority", "./detail/26640.htm", parent.parent.DisplayArea.Content, "26640", "","WBS");
+new menuItem("26268", "26329", "PAYT-Completion, Commissioning, Testing, obtaining necessary NOC’s and handing over to Authority", "./detail/26329.htm", parent.parent.DisplayArea.Content, "26329", "","WBS");
+new menuItem("26268", "26330", "Milestone End of concourse", "./detail/26330.htm", parent.parent.DisplayArea.Content, "26330", "","WBS");
+new menuItem("26268", "26331", "COS-Instructions from AE", "./detail/26331.htm", parent.parent.DisplayArea.Content, "26331", "","WBS");
+new menuItem("26268", "26332", "PAYT-For Change of Scope", "./detail/26332.htm", parent.parent.DisplayArea.Content, "26332", "","WBS");
+new menuItem("26261", "26269", "PM-D-ARRIVAL BUILDINGS ", "./detail/26269.htm", parent.parent.DisplayArea.Content, "26269", "","WBS");
+new menuItem("26269", "26333", "Milestone Start ", "./detail/26333.htm", parent.parent.DisplayArea.Content, "26333", "","WBS");
+new menuItem("26269", "26334", "Submission and approval of designs and drawings ", "./detail/26334.htm", parent.parent.DisplayArea.Content, "26334", "","WBS");
+new menuItem("26269", "26335", "PAYT-Approval of Detailed Design and Drawings", "./detail/26335.htm", parent.parent.DisplayArea.Content, "26335", "","WBS");
+new menuItem("26269", "26336", "Dismantling of existing building ", "./detail/26336.htm", parent.parent.DisplayArea.Content, "26336", "","WBS");
+new menuItem("26269", "26337", "PAYT-Dismantiling of existing building ", "./detail/26337.htm", parent.parent.DisplayArea.Content, "26337", "","WBS");
+new menuItem("26269", "26338", "Foundation: On completion of 100 % Foundation work (open foundations/pile foundations including pile", "./detail/26338.htm", parent.parent.DisplayArea.Content, "26338", "","WBS");
+new menuItem("26338", "26641", "Foundation work (open foundations / pile foundations including pile caps) upto Plinth Level", "./detail/26641.htm", parent.parent.DisplayArea.Content, "26641", "","WBS");
+new menuItem("26269", "26339", "PAYT-On completion of Foundation work (open foundations / pile foundations including pile caps) and ", "./detail/26339.htm", parent.parent.DisplayArea.Content, "26339", "","WBS");
+new menuItem("26269", "26340", "Completion of superstructure of all floors ", "./detail/26340.htm", parent.parent.DisplayArea.Content, "26340", "","WBS");
+new menuItem("26340", "26642", "Ground Floor", "./detail/26642.htm", parent.parent.DisplayArea.Content, "26642", "","WBS");
+new menuItem("26340", "26643", "First Floor", "./detail/26643.htm", parent.parent.DisplayArea.Content, "26643", "","WBS");
+new menuItem("26340", "26644", "Second Floor", "./detail/26644.htm", parent.parent.DisplayArea.Content, "26644", "","WBS");
+new menuItem("26340", "26645", "Porch Area", "./detail/26645.htm", parent.parent.DisplayArea.Content, "26645", "","WBS");
+new menuItem("26340", "26646", "Staircase", "./detail/26646.htm", parent.parent.DisplayArea.Content, "26646", "","WBS");
+new menuItem("26340", "26647", "Brickwork", "./detail/26647.htm", parent.parent.DisplayArea.Content, "26647", "","WBS");
+new menuItem("26340", "26648", "Block work", "./detail/26648.htm", parent.parent.DisplayArea.Content, "26648", "","WBS");
+new menuItem("26340", "26649", "Wall Panels", "./detail/26649.htm", parent.parent.DisplayArea.Content, "26649", "","WBS");
+new menuItem("26340", "26650", "Lift Well", "./detail/26650.htm", parent.parent.DisplayArea.Content, "26650", "","WBS");
+new menuItem("26340", "26651", "Water Tanks", "./detail/26651.htm", parent.parent.DisplayArea.Content, "26651", "","WBS");
+new menuItem("26340", "26652", "Etc items", "./detail/26652.htm", parent.parent.DisplayArea.Content, "26652", "","WBS");
+new menuItem("26269", "26341", "PAYT-On completion of structure in superstructure for all floors including all column, beams, slabs,", "./detail/26341.htm", parent.parent.DisplayArea.Content, "26341", "","WBS");
+new menuItem("26269", "26342", "Completion of floor finishes, External facade work, plumbing, electrical, doors, windows, railing, p", "./detail/26342.htm", parent.parent.DisplayArea.Content, "26342", "","WBS");
+new menuItem("26342", "26653", "Wall Finishes", "./detail/26653.htm", parent.parent.DisplayArea.Content, "26653", "","WBS");
+new menuItem("26342", "26654", "doors", "./detail/26654.htm", parent.parent.DisplayArea.Content, "26654", "","WBS");
+new menuItem("26342", "26655", "Windows", "./detail/26655.htm", parent.parent.DisplayArea.Content, "26655", "","WBS");
+new menuItem("26342", "26656", "Partitions", "./detail/26656.htm", parent.parent.DisplayArea.Content, "26656", "","WBS");
+new menuItem("26342", "26657", "Roof/ceiling Finishes", "./detail/26657.htm", parent.parent.DisplayArea.Content, "26657", "","WBS");
+new menuItem("26342", "26658", "Floor finishes", "./detail/26658.htm", parent.parent.DisplayArea.Content, "26658", "","WBS");
+new menuItem("26342", "26659", "Grills", "./detail/26659.htm", parent.parent.DisplayArea.Content, "26659", "","WBS");
+new menuItem("26342", "26660", "Railing", "./detail/26660.htm", parent.parent.DisplayArea.Content, "26660", "","WBS");
+new menuItem("26342", "26661", "Structural glazing", "./detail/26661.htm", parent.parent.DisplayArea.Content, "26661", "","WBS");
+new menuItem("26342", "26662", "Glass Curtain walls", "./detail/26662.htm", parent.parent.DisplayArea.Content, "26662", "","WBS");
+new menuItem("26342", "26663", "Plumbing work", "./detail/26663.htm", parent.parent.DisplayArea.Content, "26663", "","WBS");
+new menuItem("26342", "26664", "Water Proofing", "./detail/26664.htm", parent.parent.DisplayArea.Content, "26664", "","WBS");
+new menuItem("26342", "26665", "Firefighting works", "./detail/26665.htm", parent.parent.DisplayArea.Content, "26665", "","WBS");
+new menuItem("26342", "26666", "Etc Works", "./detail/26666.htm", parent.parent.DisplayArea.Content, "26666", "","WBS");
+new menuItem("26269", "26343", "PAYT-On completion of wall finishes, doors, windows, partitions, roof/ceiling finishes, Floor finish", "./detail/26343.htm", parent.parent.DisplayArea.Content, "26343", "","WBS");
+new menuItem("26269", "26344", "PAYT-On completion of related electric works including HVAC", "./detail/26344.htm", parent.parent.DisplayArea.Content, "26344", "","WBS");
+new menuItem("26344", "26667", "Electric Works including HVAC", "./detail/26667.htm", parent.parent.DisplayArea.Content, "26667", "","WBS");
+new menuItem("26344", "26668", "Markings", "./detail/26668.htm", parent.parent.DisplayArea.Content, "26668", "","WBS");
+new menuItem("26344", "26669", "PA system", "./detail/26669.htm", parent.parent.DisplayArea.Content, "26669", "","WBS");
+new menuItem("26344", "26670", "CCTV", "./detail/26670.htm", parent.parent.DisplayArea.Content, "26670", "","WBS");
+new menuItem("26344", "26671", "Access Control Syatem", "./detail/26671.htm", parent.parent.DisplayArea.Content, "26671", "","WBS");
+new menuItem("26344", "26672", "Lighting automation system", "./detail/26672.htm", parent.parent.DisplayArea.Content, "26672", "","WBS");
+new menuItem("26344", "26673", "Displays", "./detail/26673.htm", parent.parent.DisplayArea.Content, "26673", "","WBS");
+new menuItem("26344", "26674", "WiFi", "./detail/26674.htm", parent.parent.DisplayArea.Content, "26674", "","WBS");
+new menuItem("26344", "26675", "IPIS", "./detail/26675.htm", parent.parent.DisplayArea.Content, "26675", "","WBS");
+new menuItem("26344", "26676", "Digital Clocks", "./detail/26676.htm", parent.parent.DisplayArea.Content, "26676", "","WBS");
+new menuItem("26344", "26677", "signages", "./detail/26677.htm", parent.parent.DisplayArea.Content, "26677", "","WBS");
+new menuItem("26344", "26678", "firefighting system", "./detail/26678.htm", parent.parent.DisplayArea.Content, "26678", "","WBS");
+new menuItem("26344", "26679", "lightening conductors", "./detail/26679.htm", parent.parent.DisplayArea.Content, "26679", "","WBS");
+new menuItem("26344", "26680", "telecom works ", "./detail/26680.htm", parent.parent.DisplayArea.Content, "26680", "","WBS");
+new menuItem("26269", "26346", "External Work", "./detail/26346.htm", parent.parent.DisplayArea.Content, "26346", "","WBS");
+new menuItem("26346", "26681", "External Façade Work", "./detail/26681.htm", parent.parent.DisplayArea.Content, "26681", "","WBS");
+new menuItem("26346", "26682", "External Finishing Work", "./detail/26682.htm", parent.parent.DisplayArea.Content, "26682", "","WBS");
+new menuItem("26269", "26347", "PAYT-On completion of external facade work and external finishing etc.", "./detail/26347.htm", parent.parent.DisplayArea.Content, "26347", "","WBS");
+new menuItem("26269", "26348", "Completion, handing over and approval from Authorities ", "./detail/26348.htm", parent.parent.DisplayArea.Content, "26348", "","WBS");
+new menuItem("26269", "26349", "PAYT-Completion, Commissioning, Testing, obtaining necessary NOC’s and handing over to Authority.", "./detail/26349.htm", parent.parent.DisplayArea.Content, "26349", "","WBS");
+new menuItem("26269", "26350", "Milestone End", "./detail/26350.htm", parent.parent.DisplayArea.Content, "26350", "","WBS");
+new menuItem("26269", "26351", "COS-Instructions from AE", "./detail/26351.htm", parent.parent.DisplayArea.Content, "26351", "","WBS");
+new menuItem("26269", "26352", "PAYT-For Change of Scope", "./detail/26352.htm", parent.parent.DisplayArea.Content, "26352", "","WBS");
+new menuItem("26261", "26270", "PM-E-STATION BUILDINGS ", "./detail/26270.htm", parent.parent.DisplayArea.Content, "26270", "","WBS");
+new menuItem("26270", "26353", "Milestone Start ", "./detail/26353.htm", parent.parent.DisplayArea.Content, "26353", "","WBS");
+new menuItem("26270", "26354", "Submission and approval of designs and drawings ", "./detail/26354.htm", parent.parent.DisplayArea.Content, "26354", "","WBS");
+new menuItem("26270", "26355", "PAYT-Approval of Detailed Design and Drawings", "./detail/26355.htm", parent.parent.DisplayArea.Content, "26355", "","WBS");
+new menuItem("26270", "26356", "Dismantling of existing building ", "./detail/26356.htm", parent.parent.DisplayArea.Content, "26356", "","WBS");
+new menuItem("26270", "26357", "PAYT-Dismantiling of existing building ", "./detail/26357.htm", parent.parent.DisplayArea.Content, "26357", "","WBS");
+new menuItem("26270", "26358", "Foundation: On completion of 100 % Foundation work (open foundations/pile foundations including pile", "./detail/26358.htm", parent.parent.DisplayArea.Content, "26358", "","WBS");
+new menuItem("26270", "26359", "PAYT-On completion of Foundation work (open foundations / pile foundations including pile caps) and ", "./detail/26359.htm", parent.parent.DisplayArea.Content, "26359", "","WBS");
+new menuItem("26270", "26360", "Completion of superstructure of all floors ", "./detail/26360.htm", parent.parent.DisplayArea.Content, "26360", "","WBS");
+new menuItem("26360", "26683", "Ground Floor", "./detail/26683.htm", parent.parent.DisplayArea.Content, "26683", "","WBS");
+new menuItem("26360", "26684", "First Floor", "./detail/26684.htm", parent.parent.DisplayArea.Content, "26684", "","WBS");
+new menuItem("26360", "26685", "Second Floor", "./detail/26685.htm", parent.parent.DisplayArea.Content, "26685", "","WBS");
+new menuItem("26360", "26686", "Porch Area", "./detail/26686.htm", parent.parent.DisplayArea.Content, "26686", "","WBS");
+new menuItem("26360", "26687", "Staircase", "./detail/26687.htm", parent.parent.DisplayArea.Content, "26687", "","WBS");
+new menuItem("26360", "26688", "Brickwork", "./detail/26688.htm", parent.parent.DisplayArea.Content, "26688", "","WBS");
+new menuItem("26360", "26689", "Block work", "./detail/26689.htm", parent.parent.DisplayArea.Content, "26689", "","WBS");
+new menuItem("26360", "26690", "Wall Panels", "./detail/26690.htm", parent.parent.DisplayArea.Content, "26690", "","WBS");
+new menuItem("26360", "26691", "Lift Well", "./detail/26691.htm", parent.parent.DisplayArea.Content, "26691", "","WBS");
+new menuItem("26360", "26692", "Water Tanks", "./detail/26692.htm", parent.parent.DisplayArea.Content, "26692", "","WBS");
+new menuItem("26360", "26693", "Etc items", "./detail/26693.htm", parent.parent.DisplayArea.Content, "26693", "","WBS");
+new menuItem("26270", "26361", "PAYT-On completion of structure in superstructure for all floors including all column, beams, slabs,", "./detail/26361.htm", parent.parent.DisplayArea.Content, "26361", "","WBS");
+new menuItem("26270", "26362", "Completion of floor finishes, External facade work, plumbing, electrical, doors, windows, railing, p", "./detail/26362.htm", parent.parent.DisplayArea.Content, "26362", "","WBS");
+new menuItem("26362", "26694", "Wall finishes", "./detail/26694.htm", parent.parent.DisplayArea.Content, "26694", "","WBS");
+new menuItem("26362", "26695", "doors", "./detail/26695.htm", parent.parent.DisplayArea.Content, "26695", "","WBS");
+new menuItem("26362", "26696", "windows", "./detail/26696.htm", parent.parent.DisplayArea.Content, "26696", "","WBS");
+new menuItem("26362", "26697", "partitions", "./detail/26697.htm", parent.parent.DisplayArea.Content, "26697", "","WBS");
+new menuItem("26362", "26698", "Roof/ceiling Finishes", "./detail/26698.htm", parent.parent.DisplayArea.Content, "26698", "","WBS");
+new menuItem("26362", "26699", "Floor finishes", "./detail/26699.htm", parent.parent.DisplayArea.Content, "26699", "","WBS");
+new menuItem("26362", "26700", "Grills", "./detail/26700.htm", parent.parent.DisplayArea.Content, "26700", "","WBS");
+new menuItem("26362", "26701", "Railing", "./detail/26701.htm", parent.parent.DisplayArea.Content, "26701", "","WBS");
+new menuItem("26362", "26702", "Structural glazing", "./detail/26702.htm", parent.parent.DisplayArea.Content, "26702", "","WBS");
+new menuItem("26362", "26703", "Glass Curtain walls", "./detail/26703.htm", parent.parent.DisplayArea.Content, "26703", "","WBS");
+new menuItem("26362", "26704", "Plumbing work", "./detail/26704.htm", parent.parent.DisplayArea.Content, "26704", "","WBS");
+new menuItem("26362", "26705", "Water Proofing", "./detail/26705.htm", parent.parent.DisplayArea.Content, "26705", "","WBS");
+new menuItem("26362", "26706", "Firefighting works", "./detail/26706.htm", parent.parent.DisplayArea.Content, "26706", "","WBS");
+new menuItem("26362", "26707", "Electric Works including HVAC", "./detail/26707.htm", parent.parent.DisplayArea.Content, "26707", "","WBS");
+new menuItem("26362", "26708", "announcement systems", "./detail/26708.htm", parent.parent.DisplayArea.Content, "26708", "","WBS");
+new menuItem("26362", "26709", "Signages", "./detail/26709.htm", parent.parent.DisplayArea.Content, "26709", "","WBS");
+new menuItem("26362", "26710", "all E & M works", "./detail/26710.htm", parent.parent.DisplayArea.Content, "26710", "","WBS");
+new menuItem("26362", "26711", "Etc Works", "./detail/26711.htm", parent.parent.DisplayArea.Content, "26711", "","WBS");
+new menuItem("26362", "26712", "PAYT-On completion of wall finishes, doors, windows, partitions, roofceiling finishes, Floor finish,", "./detail/26712.htm", parent.parent.DisplayArea.Content, "26712", "","WBS");
+new menuItem("26270", "26363", "Electric works including lifts & escalators, HVAC, markings, PA system, CCTV, Access control system,", "./detail/26363.htm", parent.parent.DisplayArea.Content, "26363", "","WBS");
+new menuItem("26363", "26713", "Electric Works including Lifts, escalators, HVAC", "./detail/26713.htm", parent.parent.DisplayArea.Content, "26713", "","WBS");
+new menuItem("26363", "26714", "Markings", "./detail/26714.htm", parent.parent.DisplayArea.Content, "26714", "","WBS");
+new menuItem("26363", "26715", "PA system", "./detail/26715.htm", parent.parent.DisplayArea.Content, "26715", "","WBS");
+new menuItem("26363", "26716", "CCTV", "./detail/26716.htm", parent.parent.DisplayArea.Content, "26716", "","WBS");
+new menuItem("26363", "26717", "Access Control Syatem", "./detail/26717.htm", parent.parent.DisplayArea.Content, "26717", "","WBS");
+new menuItem("26363", "26718", "Lighting automation system", "./detail/26718.htm", parent.parent.DisplayArea.Content, "26718", "","WBS");
+new menuItem("26363", "26719", "Displays", "./detail/26719.htm", parent.parent.DisplayArea.Content, "26719", "","WBS");
+new menuItem("26363", "26720", "WiFi", "./detail/26720.htm", parent.parent.DisplayArea.Content, "26720", "","WBS");
+new menuItem("26363", "26721", "IPIS", "./detail/26721.htm", parent.parent.DisplayArea.Content, "26721", "","WBS");
+new menuItem("26363", "26722", "Digital Clocks", "./detail/26722.htm", parent.parent.DisplayArea.Content, "26722", "","WBS");
+new menuItem("26363", "26723", "signages", "./detail/26723.htm", parent.parent.DisplayArea.Content, "26723", "","WBS");
+new menuItem("26363", "26724", "firefighting system", "./detail/26724.htm", parent.parent.DisplayArea.Content, "26724", "","WBS");
+new menuItem("26363", "26725", "lightening conductors", "./detail/26725.htm", parent.parent.DisplayArea.Content, "26725", "","WBS");
+new menuItem("26363", "26726", "telecom works ", "./detail/26726.htm", parent.parent.DisplayArea.Content, "26726", "","WBS");
+new menuItem("26363", "26727", "PAYT-On completion of related electric works including HVAC", "./detail/26727.htm", parent.parent.DisplayArea.Content, "26727", "","WBS");
+new menuItem("26363", "26728", "External facade work", "./detail/26728.htm", parent.parent.DisplayArea.Content, "26728", "","WBS");
+new menuItem("26363", "26729", "Finishing etc.", "./detail/26729.htm", parent.parent.DisplayArea.Content, "26729", "","WBS");
+new menuItem("26270", "26364", "Completion, handing over and approval from Authorities ", "./detail/26364.htm", parent.parent.DisplayArea.Content, "26364", "","WBS");
+new menuItem("26364", "26731", "Commissioning", "./detail/26731.htm", parent.parent.DisplayArea.Content, "26731", "","WBS");
+new menuItem("26364", "26732", "Testing", "./detail/26732.htm", parent.parent.DisplayArea.Content, "26732", "","WBS");
+new menuItem("26364", "26733", "obtaining necessary NOC’s and handing over to Authority", "./detail/26733.htm", parent.parent.DisplayArea.Content, "26733", "","WBS");
+new menuItem("26270", "26365", "PAYT-Completion, Commissioning, Testing, obtaining necessary NOC’s and handing over to Authority.", "./detail/26365.htm", parent.parent.DisplayArea.Content, "26365", "","WBS");
+new menuItem("26270", "26366", "Milestone End", "./detail/26366.htm", parent.parent.DisplayArea.Content, "26366", "","WBS");
+new menuItem("26270", "26367", "COS-Instructions from AE", "./detail/26367.htm", parent.parent.DisplayArea.Content, "26367", "","WBS");
+new menuItem("26270", "26368", "PAYT-For Change of Scope", "./detail/26368.htm", parent.parent.DisplayArea.Content, "26368", "","WBS");
+new menuItem("26261", "26271", "PM-F-CREW LOBBY & OTHER OFFICES ", "./detail/26271.htm", parent.parent.DisplayArea.Content, "26271", "","WBS");
+new menuItem("26271", "26369", "Milestone Start ", "./detail/26369.htm", parent.parent.DisplayArea.Content, "26369", "","WBS");
+new menuItem("26271", "26370", "Submission and approval of designs and drawings ", "./detail/26370.htm", parent.parent.DisplayArea.Content, "26370", "","WBS");
+new menuItem("26271", "26371", "PAYT-on Approval of Detailed Design and Drawings", "./detail/26371.htm", parent.parent.DisplayArea.Content, "26371", "","WBS");
+new menuItem("26271", "26372", "Foundation: On completion of 100 % Foundation work (open foundations/pile foundations including pile", "./detail/26372.htm", parent.parent.DisplayArea.Content, "26372", "","WBS");
+new menuItem("26271", "26373", "Foundation work (open foundations / pile foundations including pile caps) and testing, up to plinth ", "./detail/26373.htm", parent.parent.DisplayArea.Content, "26373", "","WBS");
+new menuItem("26271", "26374", "PAYT-On completion of Foundation work (open foundations / pile foundations including pile caps) and ", "./detail/26374.htm", parent.parent.DisplayArea.Content, "26374", "","WBS");
+new menuItem("26271", "26375", "Completion of superstructure of all floors ", "./detail/26375.htm", parent.parent.DisplayArea.Content, "26375", "","WBS");
+new menuItem("26375", "26734", "Ground Floor", "./detail/26734.htm", parent.parent.DisplayArea.Content, "26734", "","WBS");
+new menuItem("26375", "26735", "First Floor", "./detail/26735.htm", parent.parent.DisplayArea.Content, "26735", "","WBS");
+new menuItem("26375", "26736", "Second Floor", "./detail/26736.htm", parent.parent.DisplayArea.Content, "26736", "","WBS");
+new menuItem("26375", "26737", "Staircase", "./detail/26737.htm", parent.parent.DisplayArea.Content, "26737", "","WBS");
+new menuItem("26375", "26738", "Brickwork", "./detail/26738.htm", parent.parent.DisplayArea.Content, "26738", "","WBS");
+new menuItem("26375", "26739", "Block work", "./detail/26739.htm", parent.parent.DisplayArea.Content, "26739", "","WBS");
+new menuItem("26375", "26740", "Wall Panels", "./detail/26740.htm", parent.parent.DisplayArea.Content, "26740", "","WBS");
+new menuItem("26375", "26741", "Lift Well", "./detail/26741.htm", parent.parent.DisplayArea.Content, "26741", "","WBS");
+new menuItem("26375", "26742", "Water Tanks", "./detail/26742.htm", parent.parent.DisplayArea.Content, "26742", "","WBS");
+new menuItem("26375", "26743", "Etc items", "./detail/26743.htm", parent.parent.DisplayArea.Content, "26743", "","WBS");
+new menuItem("26271", "26376", "PAYT-On completion of structure in superstructure for all floors including all column, beams, slabs,", "./detail/26376.htm", parent.parent.DisplayArea.Content, "26376", "","WBS");
+new menuItem("26271", "26377", "Completion of floor finishes, External facade work, plumbing, electrical, doors, windows, railing, p", "./detail/26377.htm", parent.parent.DisplayArea.Content, "26377", "","WBS");
+new menuItem("26377", "26744", "Wall finishes", "./detail/26744.htm", parent.parent.DisplayArea.Content, "26744", "","WBS");
+new menuItem("26377", "26745", "doors", "./detail/26745.htm", parent.parent.DisplayArea.Content, "26745", "","WBS");
+new menuItem("26377", "26746", "windows", "./detail/26746.htm", parent.parent.DisplayArea.Content, "26746", "","WBS");
+new menuItem("26377", "26747", "partitions", "./detail/26747.htm", parent.parent.DisplayArea.Content, "26747", "","WBS");
+new menuItem("26377", "26748", "Roof/ceiling Finishes", "./detail/26748.htm", parent.parent.DisplayArea.Content, "26748", "","WBS");
+new menuItem("26377", "26749", "Floor finishes", "./detail/26749.htm", parent.parent.DisplayArea.Content, "26749", "","WBS");
+new menuItem("26377", "26750", "Grills", "./detail/26750.htm", parent.parent.DisplayArea.Content, "26750", "","WBS");
+new menuItem("26377", "26751", "Railing", "./detail/26751.htm", parent.parent.DisplayArea.Content, "26751", "","WBS");
+new menuItem("26377", "26752", "Structural glazing", "./detail/26752.htm", parent.parent.DisplayArea.Content, "26752", "","WBS");
+new menuItem("26377", "26753", "Glass Curtain walls", "./detail/26753.htm", parent.parent.DisplayArea.Content, "26753", "","WBS");
+new menuItem("26377", "26754", "Plumbing work", "./detail/26754.htm", parent.parent.DisplayArea.Content, "26754", "","WBS");
+new menuItem("26377", "26755", "Water Proofing", "./detail/26755.htm", parent.parent.DisplayArea.Content, "26755", "","WBS");
+new menuItem("26377", "26756", "Firefighting works", "./detail/26756.htm", parent.parent.DisplayArea.Content, "26756", "","WBS");
+new menuItem("26377", "26757", "Electric Works including HVAC", "./detail/26757.htm", parent.parent.DisplayArea.Content, "26757", "","WBS");
+new menuItem("26377", "26758", "announcement systems", "./detail/26758.htm", parent.parent.DisplayArea.Content, "26758", "","WBS");
+new menuItem("26377", "26759", "Signages", "./detail/26759.htm", parent.parent.DisplayArea.Content, "26759", "","WBS");
+new menuItem("26377", "26760", "all E & M works", "./detail/26760.htm", parent.parent.DisplayArea.Content, "26760", "","WBS");
+new menuItem("26377", "26761", "Etc Works", "./detail/26761.htm", parent.parent.DisplayArea.Content, "26761", "","WBS");
+new menuItem("26377", "26762", "PAYT-On completion of wall finishes, doors, windows, partitions, roofceiling finishes, Floor finish,", "./detail/26762.htm", parent.parent.DisplayArea.Content, "26762", "","WBS");
+new menuItem("26377", "26763", "Electric Works including Lifts, escalators", "./detail/26763.htm", parent.parent.DisplayArea.Content, "26763", "","WBS");
+new menuItem("26377", "26764", "Markings", "./detail/26764.htm", parent.parent.DisplayArea.Content, "26764", "","WBS");
+new menuItem("26377", "26765", "PA system", "./detail/26765.htm", parent.parent.DisplayArea.Content, "26765", "","WBS");
+new menuItem("26377", "26766", "CCTV", "./detail/26766.htm", parent.parent.DisplayArea.Content, "26766", "","WBS");
+new menuItem("26377", "26767", "Access Control Syatem", "./detail/26767.htm", parent.parent.DisplayArea.Content, "26767", "","WBS");
+new menuItem("26377", "26768", "Lighting automation system", "./detail/26768.htm", parent.parent.DisplayArea.Content, "26768", "","WBS");
+new menuItem("26377", "26769", "Displays", "./detail/26769.htm", parent.parent.DisplayArea.Content, "26769", "","WBS");
+new menuItem("26377", "26770", "WiFi", "./detail/26770.htm", parent.parent.DisplayArea.Content, "26770", "","WBS");
+new menuItem("26377", "26771", "IPIS", "./detail/26771.htm", parent.parent.DisplayArea.Content, "26771", "","WBS");
+new menuItem("26377", "26772", "Digital Clocks", "./detail/26772.htm", parent.parent.DisplayArea.Content, "26772", "","WBS");
+new menuItem("26377", "26774", "firefighting system", "./detail/26774.htm", parent.parent.DisplayArea.Content, "26774", "","WBS");
+new menuItem("26377", "26775", "lightening conductors", "./detail/26775.htm", parent.parent.DisplayArea.Content, "26775", "","WBS");
+new menuItem("26377", "26776", "telecom works ", "./detail/26776.htm", parent.parent.DisplayArea.Content, "26776", "","WBS");
+new menuItem("26377", "26778", "PAYT-On completion of related electric works including HVAC", "./detail/26778.htm", parent.parent.DisplayArea.Content, "26778", "","WBS");
+new menuItem("26377", "26779", "External facade work", "./detail/26779.htm", parent.parent.DisplayArea.Content, "26779", "","WBS");
+new menuItem("26377", "26780", "Finishing etc.", "./detail/26780.htm", parent.parent.DisplayArea.Content, "26780", "","WBS");
+new menuItem("26377", "26781", "PAYT-On completion of external facade work and finishing etc.", "./detail/26781.htm", parent.parent.DisplayArea.Content, "26781", "","WBS");
+new menuItem("26271", "26378", "Completion, handing over and approval from Authorities ", "./detail/26378.htm", parent.parent.DisplayArea.Content, "26378", "","WBS");
+new menuItem("26378", "26782", "Commissioning", "./detail/26782.htm", parent.parent.DisplayArea.Content, "26782", "","WBS");
+new menuItem("26378", "26783", "Testing", "./detail/26783.htm", parent.parent.DisplayArea.Content, "26783", "","WBS");
+new menuItem("26378", "26784", "obtaining necessary NOC’s and handing over to Authority", "./detail/26784.htm", parent.parent.DisplayArea.Content, "26784", "","WBS");
+new menuItem("26271", "26379", "PAYT-Completion, Commissioning, Testing, obtaining necessary NOC’s and handing over to Authority.", "./detail/26379.htm", parent.parent.DisplayArea.Content, "26379", "","WBS");
+new menuItem("26271", "26380", "Milestone End", "./detail/26380.htm", parent.parent.DisplayArea.Content, "26380", "","WBS");
+new menuItem("26271", "26381", "PAYT-For Change of Scope", "./detail/26381.htm", parent.parent.DisplayArea.Content, "26381", "","WBS");
+new menuItem("26261", "26272", "PM-G-PARCEL BLOCK & HEALTH INSPECTOR ", "./detail/26272.htm", parent.parent.DisplayArea.Content, "26272", "","WBS");
+new menuItem("26272", "26382", "Milestone Start ", "./detail/26382.htm", parent.parent.DisplayArea.Content, "26382", "","WBS");
+new menuItem("26272", "26383", "Submission and approval of designs and drawings ", "./detail/26383.htm", parent.parent.DisplayArea.Content, "26383", "","WBS");
+new menuItem("26272", "26384", "PAYT-on Approval of Detailed Design and Drawings", "./detail/26384.htm", parent.parent.DisplayArea.Content, "26384", "","WBS");
+new menuItem("26272", "26385", "Foundation: On completion of 100 % Foundation work (open foundations/pile foundations including pile", "./detail/26385.htm", parent.parent.DisplayArea.Content, "26385", "","WBS");
+new menuItem("26272", "26386", "Foundation work (open foundations / pile foundations including pile caps) and testing, up to plinth ", "./detail/26386.htm", parent.parent.DisplayArea.Content, "26386", "","WBS");
+new menuItem("26272", "26387", "PAYT-On completion of Foundation work (open foundations / pile foundations including pile caps) and ", "./detail/26387.htm", parent.parent.DisplayArea.Content, "26387", "","WBS");
+new menuItem("26272", "26388", "Completion of superstructure of all floors ", "./detail/26388.htm", parent.parent.DisplayArea.Content, "26388", "","WBS");
+new menuItem("26388", "26785", "Ground Floor", "./detail/26785.htm", parent.parent.DisplayArea.Content, "26785", "","WBS");
+new menuItem("26388", "26786", "Staircase", "./detail/26786.htm", parent.parent.DisplayArea.Content, "26786", "","WBS");
+new menuItem("26388", "26787", "Brickwork", "./detail/26787.htm", parent.parent.DisplayArea.Content, "26787", "","WBS");
+new menuItem("26388", "26788", "Block work", "./detail/26788.htm", parent.parent.DisplayArea.Content, "26788", "","WBS");
+new menuItem("26388", "26789", "Wall Panels", "./detail/26789.htm", parent.parent.DisplayArea.Content, "26789", "","WBS");
+new menuItem("26388", "26790", "Lift Well", "./detail/26790.htm", parent.parent.DisplayArea.Content, "26790", "","WBS");
+new menuItem("26388", "26791", "Water Tanks", "./detail/26791.htm", parent.parent.DisplayArea.Content, "26791", "","WBS");
+new menuItem("26388", "26792", "Etc items", "./detail/26792.htm", parent.parent.DisplayArea.Content, "26792", "","WBS");
+new menuItem("26272", "26389", "PAYT-On completion of structure in superstructure for all floors including all column, beams, slabs,", "./detail/26389.htm", parent.parent.DisplayArea.Content, "26389", "","WBS");
+new menuItem("26272", "26390", "Completion of floor finishes, External facade work, plumbing, electrical, doors, windows, railing, p", "./detail/26390.htm", parent.parent.DisplayArea.Content, "26390", "","WBS");
+new menuItem("26390", "26793", "Wall finishes", "./detail/26793.htm", parent.parent.DisplayArea.Content, "26793", "","WBS");
+new menuItem("26390", "26794", "doors", "./detail/26794.htm", parent.parent.DisplayArea.Content, "26794", "","WBS");
+new menuItem("26390", "26795", "windows", "./detail/26795.htm", parent.parent.DisplayArea.Content, "26795", "","WBS");
+new menuItem("26390", "26796", "partitions", "./detail/26796.htm", parent.parent.DisplayArea.Content, "26796", "","WBS");
+new menuItem("26390", "26797", "Roof/ceiling Finishes", "./detail/26797.htm", parent.parent.DisplayArea.Content, "26797", "","WBS");
+new menuItem("26390", "26798", "Floor finishes", "./detail/26798.htm", parent.parent.DisplayArea.Content, "26798", "","WBS");
+new menuItem("26390", "26799", "Grills", "./detail/26799.htm", parent.parent.DisplayArea.Content, "26799", "","WBS");
+new menuItem("26390", "26800", "Railing", "./detail/26800.htm", parent.parent.DisplayArea.Content, "26800", "","WBS");
+new menuItem("26390", "26801", "Structural glazing", "./detail/26801.htm", parent.parent.DisplayArea.Content, "26801", "","WBS");
+new menuItem("26390", "26802", "Glass Curtain walls", "./detail/26802.htm", parent.parent.DisplayArea.Content, "26802", "","WBS");
+new menuItem("26390", "26803", "Plumbing work", "./detail/26803.htm", parent.parent.DisplayArea.Content, "26803", "","WBS");
+new menuItem("26390", "26804", "Water Proofing", "./detail/26804.htm", parent.parent.DisplayArea.Content, "26804", "","WBS");
+new menuItem("26390", "26805", "Firefighting works", "./detail/26805.htm", parent.parent.DisplayArea.Content, "26805", "","WBS");
+new menuItem("26390", "26806", "Electric Works including HVAC", "./detail/26806.htm", parent.parent.DisplayArea.Content, "26806", "","WBS");
+new menuItem("26390", "26807", "announcement systems", "./detail/26807.htm", parent.parent.DisplayArea.Content, "26807", "","WBS");
+new menuItem("26390", "26808", "Signages", "./detail/26808.htm", parent.parent.DisplayArea.Content, "26808", "","WBS");
+new menuItem("26390", "26809", "all E & M works", "./detail/26809.htm", parent.parent.DisplayArea.Content, "26809", "","WBS");
+new menuItem("26390", "26810", "Etc Works", "./detail/26810.htm", parent.parent.DisplayArea.Content, "26810", "","WBS");
+new menuItem("26390", "26811", "PAYT-On completion of wall finishes, doors, windows, partitions, roofceiling finishes, Floor finish,", "./detail/26811.htm", parent.parent.DisplayArea.Content, "26811", "","WBS");
+new menuItem("26390", "26812", "Electric Works including Lifts, escalators, HVAC", "./detail/26812.htm", parent.parent.DisplayArea.Content, "26812", "","WBS");
+new menuItem("26390", "26813", "Markings", "./detail/26813.htm", parent.parent.DisplayArea.Content, "26813", "","WBS");
+new menuItem("26390", "26814", "PA system", "./detail/26814.htm", parent.parent.DisplayArea.Content, "26814", "","WBS");
+new menuItem("26390", "26815", "CCTV", "./detail/26815.htm", parent.parent.DisplayArea.Content, "26815", "","WBS");
+new menuItem("26390", "26816", "Access Control Syatem", "./detail/26816.htm", parent.parent.DisplayArea.Content, "26816", "","WBS");
+new menuItem("26390", "26817", "Lighting automation system", "./detail/26817.htm", parent.parent.DisplayArea.Content, "26817", "","WBS");
+new menuItem("26390", "26818", "Displays", "./detail/26818.htm", parent.parent.DisplayArea.Content, "26818", "","WBS");
+new menuItem("26390", "26819", "WiFi", "./detail/26819.htm", parent.parent.DisplayArea.Content, "26819", "","WBS");
+new menuItem("26390", "26820", "IPIS", "./detail/26820.htm", parent.parent.DisplayArea.Content, "26820", "","WBS");
+new menuItem("26390", "26821", "Digital Clocks", "./detail/26821.htm", parent.parent.DisplayArea.Content, "26821", "","WBS");
+new menuItem("26390", "26823", "firefighting system", "./detail/26823.htm", parent.parent.DisplayArea.Content, "26823", "","WBS");
+new menuItem("26390", "26824", "lightening conductors", "./detail/26824.htm", parent.parent.DisplayArea.Content, "26824", "","WBS");
+new menuItem("26390", "26825", "telecom works ", "./detail/26825.htm", parent.parent.DisplayArea.Content, "26825", "","WBS");
+new menuItem("26390", "26827", "PAYT-On completion of related electric works including HVAC", "./detail/26827.htm", parent.parent.DisplayArea.Content, "26827", "","WBS");
+new menuItem("26390", "26828", "External facade work", "./detail/26828.htm", parent.parent.DisplayArea.Content, "26828", "","WBS");
+new menuItem("26390", "26829", "Finishing etc.", "./detail/26829.htm", parent.parent.DisplayArea.Content, "26829", "","WBS");
+new menuItem("26390", "26830", "PAYT-On completion of external facade work and finishing etc.", "./detail/26830.htm", parent.parent.DisplayArea.Content, "26830", "","WBS");
+new menuItem("26272", "26391", "Completion, handing over and approval from Authorities ", "./detail/26391.htm", parent.parent.DisplayArea.Content, "26391", "","WBS");
+new menuItem("26391", "26831", "Commissioning", "./detail/26831.htm", parent.parent.DisplayArea.Content, "26831", "","WBS");
+new menuItem("26391", "26832", "Testing", "./detail/26832.htm", parent.parent.DisplayArea.Content, "26832", "","WBS");
+new menuItem("26391", "26833", "obtaining necessary NOC’s and handing over to Authority", "./detail/26833.htm", parent.parent.DisplayArea.Content, "26833", "","WBS");
+new menuItem("26272", "26392", "PAYT-Completion, Commissioning, Testing, obtaining necessary NOC’s and handing over to Authority.", "./detail/26392.htm", parent.parent.DisplayArea.Content, "26392", "","WBS");
+new menuItem("26272", "26393", "Milestone End", "./detail/26393.htm", parent.parent.DisplayArea.Content, "26393", "","WBS");
+new menuItem("26272", "26394", "COS instructions from Authority", "./detail/26394.htm", parent.parent.DisplayArea.Content, "26394", "","WBS");
+new menuItem("26272", "26395", "PAYT-For Change of Scope", "./detail/26395.htm", parent.parent.DisplayArea.Content, "26395", "","WBS");
+new menuItem("26261", "26273", "PM-H-ARMY SHED ", "./detail/26273.htm", parent.parent.DisplayArea.Content, "26273", "","WBS");
+new menuItem("26273", "26396", "Milestone Start ", "./detail/26396.htm", parent.parent.DisplayArea.Content, "26396", "","WBS");
+new menuItem("26273", "26397", "Submission and approval of designs and drawings ", "./detail/26397.htm", parent.parent.DisplayArea.Content, "26397", "","WBS");
+new menuItem("26273", "26398", "PAYT-on Approval of Detailed Design and Drawings", "./detail/26398.htm", parent.parent.DisplayArea.Content, "26398", "","WBS");
+new menuItem("26273", "26399", "Foundation: On completion of 100 % Foundation work (open foundations/pile foundations including pile", "./detail/26399.htm", parent.parent.DisplayArea.Content, "26399", "","WBS");
+new menuItem("26273", "26400", "Foundation work (open foundations / pile foundations including pile caps) and testing, up to plinth ", "./detail/26400.htm", parent.parent.DisplayArea.Content, "26400", "","WBS");
+new menuItem("26273", "26401", "PAYT-On completion of Foundation work (open foundations / pile foundations including pile caps) and ", "./detail/26401.htm", parent.parent.DisplayArea.Content, "26401", "","WBS");
+new menuItem("26273", "26402", "Completion of superstructure of all floors ", "./detail/26402.htm", parent.parent.DisplayArea.Content, "26402", "","WBS");
+new menuItem("26402", "26834", "Ground Floor", "./detail/26834.htm", parent.parent.DisplayArea.Content, "26834", "","WBS");
+new menuItem("26402", "26835", "Staircase", "./detail/26835.htm", parent.parent.DisplayArea.Content, "26835", "","WBS");
+new menuItem("26402", "26836", "Brickwork", "./detail/26836.htm", parent.parent.DisplayArea.Content, "26836", "","WBS");
+new menuItem("26402", "26837", "Block work", "./detail/26837.htm", parent.parent.DisplayArea.Content, "26837", "","WBS");
+new menuItem("26402", "26838", "Wall Panels", "./detail/26838.htm", parent.parent.DisplayArea.Content, "26838", "","WBS");
+new menuItem("26402", "26839", "Lift Well", "./detail/26839.htm", parent.parent.DisplayArea.Content, "26839", "","WBS");
+new menuItem("26402", "26840", "Water Tanks", "./detail/26840.htm", parent.parent.DisplayArea.Content, "26840", "","WBS");
+new menuItem("26402", "26841", "Etc items", "./detail/26841.htm", parent.parent.DisplayArea.Content, "26841", "","WBS");
+new menuItem("26273", "26403", "PAYT-On completion of structure in superstructure for all floors including all column, beams, slabs,", "./detail/26403.htm", parent.parent.DisplayArea.Content, "26403", "","WBS");
+new menuItem("26273", "26404", "Completion of floor finishes, External facade work, plumbing, electrical, doors, windows, railing, p", "./detail/26404.htm", parent.parent.DisplayArea.Content, "26404", "","WBS");
+new menuItem("26404", "26842", "Wall finishes", "./detail/26842.htm", parent.parent.DisplayArea.Content, "26842", "","WBS");
+new menuItem("26404", "26843", "doors", "./detail/26843.htm", parent.parent.DisplayArea.Content, "26843", "","WBS");
+new menuItem("26404", "26844", "windows", "./detail/26844.htm", parent.parent.DisplayArea.Content, "26844", "","WBS");
+new menuItem("26404", "26845", "partitions", "./detail/26845.htm", parent.parent.DisplayArea.Content, "26845", "","WBS");
+new menuItem("26404", "26846", "Roof/ceiling Finishes", "./detail/26846.htm", parent.parent.DisplayArea.Content, "26846", "","WBS");
+new menuItem("26404", "26847", "Floor finishes", "./detail/26847.htm", parent.parent.DisplayArea.Content, "26847", "","WBS");
+new menuItem("26404", "26848", "Grills", "./detail/26848.htm", parent.parent.DisplayArea.Content, "26848", "","WBS");
+new menuItem("26404", "26849", "Railing", "./detail/26849.htm", parent.parent.DisplayArea.Content, "26849", "","WBS");
+new menuItem("26404", "26850", "Structural glazing", "./detail/26850.htm", parent.parent.DisplayArea.Content, "26850", "","WBS");
+new menuItem("26404", "26851", "Glass Curtain walls", "./detail/26851.htm", parent.parent.DisplayArea.Content, "26851", "","WBS");
+new menuItem("26404", "26852", "Plumbing work", "./detail/26852.htm", parent.parent.DisplayArea.Content, "26852", "","WBS");
+new menuItem("26404", "26853", "Water Proofing", "./detail/26853.htm", parent.parent.DisplayArea.Content, "26853", "","WBS");
+new menuItem("26404", "26854", "Firefighting works", "./detail/26854.htm", parent.parent.DisplayArea.Content, "26854", "","WBS");
+new menuItem("26404", "26855", "Electric Works including HVAC", "./detail/26855.htm", parent.parent.DisplayArea.Content, "26855", "","WBS");
+new menuItem("26404", "26856", "announcement systems", "./detail/26856.htm", parent.parent.DisplayArea.Content, "26856", "","WBS");
+new menuItem("26404", "26857", "Signages", "./detail/26857.htm", parent.parent.DisplayArea.Content, "26857", "","WBS");
+new menuItem("26404", "26858", "all E & M works", "./detail/26858.htm", parent.parent.DisplayArea.Content, "26858", "","WBS");
+new menuItem("26404", "26859", "Etc Works", "./detail/26859.htm", parent.parent.DisplayArea.Content, "26859", "","WBS");
+new menuItem("26404", "26860", "PAYT-On completion of wall finishes, doors, windows, partitions, roofceiling finishes, Floor finish,", "./detail/26860.htm", parent.parent.DisplayArea.Content, "26860", "","WBS");
+new menuItem("26404", "26861", "Electric Works including Lifts, escalators, HVAC", "./detail/26861.htm", parent.parent.DisplayArea.Content, "26861", "","WBS");
+new menuItem("26404", "26862", "Markings", "./detail/26862.htm", parent.parent.DisplayArea.Content, "26862", "","WBS");
+new menuItem("26404", "26863", "PA system", "./detail/26863.htm", parent.parent.DisplayArea.Content, "26863", "","WBS");
+new menuItem("26404", "26864", "CCTV", "./detail/26864.htm", parent.parent.DisplayArea.Content, "26864", "","WBS");
+new menuItem("26404", "26865", "Access Control Syatem", "./detail/26865.htm", parent.parent.DisplayArea.Content, "26865", "","WBS");
+new menuItem("26404", "26866", "Lighting automation system", "./detail/26866.htm", parent.parent.DisplayArea.Content, "26866", "","WBS");
+new menuItem("26404", "26867", "Displays", "./detail/26867.htm", parent.parent.DisplayArea.Content, "26867", "","WBS");
+new menuItem("26404", "26868", "WiFi", "./detail/26868.htm", parent.parent.DisplayArea.Content, "26868", "","WBS");
+new menuItem("26404", "26869", "IPIS", "./detail/26869.htm", parent.parent.DisplayArea.Content, "26869", "","WBS");
+new menuItem("26404", "26870", "Digital Clocks", "./detail/26870.htm", parent.parent.DisplayArea.Content, "26870", "","WBS");
+new menuItem("26404", "26872", "firefighting system", "./detail/26872.htm", parent.parent.DisplayArea.Content, "26872", "","WBS");
+new menuItem("26404", "26873", "lightening conductors", "./detail/26873.htm", parent.parent.DisplayArea.Content, "26873", "","WBS");
+new menuItem("26404", "26874", "telecom works ", "./detail/26874.htm", parent.parent.DisplayArea.Content, "26874", "","WBS");
+new menuItem("26404", "26876", "PAYT-On completion of related electric works including HVAC", "./detail/26876.htm", parent.parent.DisplayArea.Content, "26876", "","WBS");
+new menuItem("26404", "26877", "External facade work", "./detail/26877.htm", parent.parent.DisplayArea.Content, "26877", "","WBS");
+new menuItem("26404", "26878", "Finishing etc.", "./detail/26878.htm", parent.parent.DisplayArea.Content, "26878", "","WBS");
+new menuItem("26404", "26879", "PAYT-On completion of external facade work and finishing etc.", "./detail/26879.htm", parent.parent.DisplayArea.Content, "26879", "","WBS");
+new menuItem("26273", "26405", "Completion, handing over and approval from Authorities ", "./detail/26405.htm", parent.parent.DisplayArea.Content, "26405", "","WBS");
+new menuItem("26405", "26880", "Commissioning", "./detail/26880.htm", parent.parent.DisplayArea.Content, "26880", "","WBS");
+new menuItem("26405", "26881", "Testing", "./detail/26881.htm", parent.parent.DisplayArea.Content, "26881", "","WBS");
+new menuItem("26405", "26882", "obtaining necessary NOC’s and handing over to Authority", "./detail/26882.htm", parent.parent.DisplayArea.Content, "26882", "","WBS");
+new menuItem("26273", "26406", "PAYT-Completion, Commissioning, Testing, obtaining necessary NOC’s and handing over to Authority.", "./detail/26406.htm", parent.parent.DisplayArea.Content, "26406", "","WBS");
+new menuItem("26273", "26407", "Milestone End", "./detail/26407.htm", parent.parent.DisplayArea.Content, "26407", "","WBS");
+new menuItem("26273", "26408", "COS instructions from Authority", "./detail/26408.htm", parent.parent.DisplayArea.Content, "26408", "","WBS");
+new menuItem("26273", "26409", "PAYT-For Change of Scope", "./detail/26409.htm", parent.parent.DisplayArea.Content, "26409", "","WBS");
+new menuItem("26261", "26274", "PM-I-OFFICER’S GUEST HOUSE ", "./detail/26274.htm", parent.parent.DisplayArea.Content, "26274", "","WBS");
+new menuItem("26274", "26410", "Milestone Start ", "./detail/26410.htm", parent.parent.DisplayArea.Content, "26410", "","WBS");
+new menuItem("26274", "26411", "Submission and approval of designs and drawings ", "./detail/26411.htm", parent.parent.DisplayArea.Content, "26411", "","WBS");
+new menuItem("26274", "26412", "PAYT-on Approval of Detailed Design and Drawings", "./detail/26412.htm", parent.parent.DisplayArea.Content, "26412", "","WBS");
+new menuItem("26274", "26413", "Foundation: On completion of 100 % Foundation work (open foundations/pile foundations including pile", "./detail/26413.htm", parent.parent.DisplayArea.Content, "26413", "","WBS");
+new menuItem("26274", "26414", "Foundation work (open foundations / pile foundations including pile caps) and testing, up to plinth ", "./detail/26414.htm", parent.parent.DisplayArea.Content, "26414", "","WBS");
+new menuItem("26274", "26415", "PAYT-On completion of Foundation work (open foundations / pile foundations including pile caps) and ", "./detail/26415.htm", parent.parent.DisplayArea.Content, "26415", "","WBS");
+new menuItem("26274", "26416", "Completion of superstructure of all floors ", "./detail/26416.htm", parent.parent.DisplayArea.Content, "26416", "","WBS");
+new menuItem("26416", "26883", "Ground Floor", "./detail/26883.htm", parent.parent.DisplayArea.Content, "26883", "","WBS");
+new menuItem("26416", "26884", "Staircase", "./detail/26884.htm", parent.parent.DisplayArea.Content, "26884", "","WBS");
+new menuItem("26416", "26885", "Brickwork", "./detail/26885.htm", parent.parent.DisplayArea.Content, "26885", "","WBS");
+new menuItem("26416", "26886", "Block work", "./detail/26886.htm", parent.parent.DisplayArea.Content, "26886", "","WBS");
+new menuItem("26416", "26887", "Wall Panels", "./detail/26887.htm", parent.parent.DisplayArea.Content, "26887", "","WBS");
+new menuItem("26416", "26888", "Lift Well", "./detail/26888.htm", parent.parent.DisplayArea.Content, "26888", "","WBS");
+new menuItem("26416", "26889", "Water Tanks", "./detail/26889.htm", parent.parent.DisplayArea.Content, "26889", "","WBS");
+new menuItem("26416", "26890", "Etc items", "./detail/26890.htm", parent.parent.DisplayArea.Content, "26890", "","WBS");
+new menuItem("26274", "26417", "PAYT-On completion of structure in superstructure for all floors including all column, beams, slabs,", "./detail/26417.htm", parent.parent.DisplayArea.Content, "26417", "","WBS");
+new menuItem("26274", "26418", "Completion of floor finishes, External facade work, plumbing, electrical, doors, windows, railing, p", "./detail/26418.htm", parent.parent.DisplayArea.Content, "26418", "","WBS");
+new menuItem("26418", "26891", "Wall finishes", "./detail/26891.htm", parent.parent.DisplayArea.Content, "26891", "","WBS");
+new menuItem("26418", "26892", "doors", "./detail/26892.htm", parent.parent.DisplayArea.Content, "26892", "","WBS");
+new menuItem("26418", "26893", "windows", "./detail/26893.htm", parent.parent.DisplayArea.Content, "26893", "","WBS");
+new menuItem("26418", "26894", "partitions", "./detail/26894.htm", parent.parent.DisplayArea.Content, "26894", "","WBS");
+new menuItem("26418", "26895", "Roof/ceiling Finishes", "./detail/26895.htm", parent.parent.DisplayArea.Content, "26895", "","WBS");
+new menuItem("26418", "26896", "Floor finishes", "./detail/26896.htm", parent.parent.DisplayArea.Content, "26896", "","WBS");
+new menuItem("26418", "26897", "Grills", "./detail/26897.htm", parent.parent.DisplayArea.Content, "26897", "","WBS");
+new menuItem("26418", "26898", "Railing", "./detail/26898.htm", parent.parent.DisplayArea.Content, "26898", "","WBS");
+new menuItem("26418", "26899", "Structural glazing", "./detail/26899.htm", parent.parent.DisplayArea.Content, "26899", "","WBS");
+new menuItem("26418", "26900", "Glass Curtain walls", "./detail/26900.htm", parent.parent.DisplayArea.Content, "26900", "","WBS");
+new menuItem("26418", "26901", "Plumbing work", "./detail/26901.htm", parent.parent.DisplayArea.Content, "26901", "","WBS");
+new menuItem("26418", "26902", "Water Proofing", "./detail/26902.htm", parent.parent.DisplayArea.Content, "26902", "","WBS");
+new menuItem("26418", "26903", "Firefighting works", "./detail/26903.htm", parent.parent.DisplayArea.Content, "26903", "","WBS");
+new menuItem("26418", "26904", "Electric Works including HVAC", "./detail/26904.htm", parent.parent.DisplayArea.Content, "26904", "","WBS");
+new menuItem("26418", "26905", "announcement systems", "./detail/26905.htm", parent.parent.DisplayArea.Content, "26905", "","WBS");
+new menuItem("26418", "26906", "Signages", "./detail/26906.htm", parent.parent.DisplayArea.Content, "26906", "","WBS");
+new menuItem("26418", "26907", "all E & M works", "./detail/26907.htm", parent.parent.DisplayArea.Content, "26907", "","WBS");
+new menuItem("26418", "26908", "Etc Works", "./detail/26908.htm", parent.parent.DisplayArea.Content, "26908", "","WBS");
+new menuItem("26418", "26909", "PAYT-On completion of wall finishes, doors, windows, partitions, roofceiling finishes, Floor finish,", "./detail/26909.htm", parent.parent.DisplayArea.Content, "26909", "","WBS");
+new menuItem("26418", "26910", "Electric Works including Lifts, escalators, HVAC", "./detail/26910.htm", parent.parent.DisplayArea.Content, "26910", "","WBS");
+new menuItem("26418", "26911", "Markings", "./detail/26911.htm", parent.parent.DisplayArea.Content, "26911", "","WBS");
+new menuItem("26418", "26912", "PA system", "./detail/26912.htm", parent.parent.DisplayArea.Content, "26912", "","WBS");
+new menuItem("26418", "26913", "CCTV", "./detail/26913.htm", parent.parent.DisplayArea.Content, "26913", "","WBS");
+new menuItem("26418", "26914", "Access Control Syatem", "./detail/26914.htm", parent.parent.DisplayArea.Content, "26914", "","WBS");
+new menuItem("26418", "26915", "Lighting automation system", "./detail/26915.htm", parent.parent.DisplayArea.Content, "26915", "","WBS");
+new menuItem("26418", "26916", "Displays", "./detail/26916.htm", parent.parent.DisplayArea.Content, "26916", "","WBS");
+new menuItem("26418", "26917", "WiFi", "./detail/26917.htm", parent.parent.DisplayArea.Content, "26917", "","WBS");
+new menuItem("26418", "26918", "IPIS", "./detail/26918.htm", parent.parent.DisplayArea.Content, "26918", "","WBS");
+new menuItem("26418", "26919", "Digital Clocks", "./detail/26919.htm", parent.parent.DisplayArea.Content, "26919", "","WBS");
+new menuItem("26418", "26921", "firefighting system", "./detail/26921.htm", parent.parent.DisplayArea.Content, "26921", "","WBS");
+new menuItem("26418", "26922", "lightening conductors", "./detail/26922.htm", parent.parent.DisplayArea.Content, "26922", "","WBS");
+new menuItem("26418", "26923", "telecom works ", "./detail/26923.htm", parent.parent.DisplayArea.Content, "26923", "","WBS");
+new menuItem("26418", "26925", "PAYT-On completion of related electric works including HVAC", "./detail/26925.htm", parent.parent.DisplayArea.Content, "26925", "","WBS");
+new menuItem("26418", "26926", "External facade work", "./detail/26926.htm", parent.parent.DisplayArea.Content, "26926", "","WBS");
+new menuItem("26418", "26927", "Finishing etc.", "./detail/26927.htm", parent.parent.DisplayArea.Content, "26927", "","WBS");
+new menuItem("26418", "26928", "PAYT-On completion of external facade work and finishing etc.", "./detail/26928.htm", parent.parent.DisplayArea.Content, "26928", "","WBS");
+new menuItem("26274", "26419", "Completion, handing over and approval from Authorities ", "./detail/26419.htm", parent.parent.DisplayArea.Content, "26419", "","WBS");
+new menuItem("26419", "26929", "Commissioning", "./detail/26929.htm", parent.parent.DisplayArea.Content, "26929", "","WBS");
+new menuItem("26419", "26930", "Testing", "./detail/26930.htm", parent.parent.DisplayArea.Content, "26930", "","WBS");
+new menuItem("26419", "26931", "obtaining necessary NOC’s and handing over to Authority", "./detail/26931.htm", parent.parent.DisplayArea.Content, "26931", "","WBS");
+new menuItem("26274", "26420", "PAYT-Completion, Commissioning, Testing, obtaining necessary NOC’s and handing over to Authority.", "./detail/26420.htm", parent.parent.DisplayArea.Content, "26420", "","WBS");
+new menuItem("26274", "26421", "Milestone End", "./detail/26421.htm", parent.parent.DisplayArea.Content, "26421", "","WBS");
+new menuItem("26274", "26422", "COS instructions from Authority", "./detail/26422.htm", parent.parent.DisplayArea.Content, "26422", "","WBS");
+new menuItem("26274", "26423", "PAYT-For Change of Scope", "./detail/26423.htm", parent.parent.DisplayArea.Content, "26423", "","WBS");
+new menuItem("26261", "26275", "PM-J-SUB STATION BUILDING ", "./detail/26275.htm", parent.parent.DisplayArea.Content, "26275", "","WBS");
+new menuItem("26275", "26424", "Milestone Start ", "./detail/26424.htm", parent.parent.DisplayArea.Content, "26424", "","WBS");
+new menuItem("26275", "26425", "Submission and approval of designs and drawings ", "./detail/26425.htm", parent.parent.DisplayArea.Content, "26425", "","WBS");
+new menuItem("26275", "26426", "PAYT-on Approval of Detailed Design and Drawings", "./detail/26426.htm", parent.parent.DisplayArea.Content, "26426", "","WBS");
+new menuItem("26275", "26427", "Foundation: On completion of 100 % Foundation work (open foundations/pile foundations including pile", "./detail/26427.htm", parent.parent.DisplayArea.Content, "26427", "","WBS");
+new menuItem("26275", "26428", "Foundation work (open foundations / pile foundations including pile caps) and testing, up to plinth ", "./detail/26428.htm", parent.parent.DisplayArea.Content, "26428", "","WBS");
+new menuItem("26275", "26429", "PAYT-On completion of Foundation work (open foundations / pile foundations including pile caps) and ", "./detail/26429.htm", parent.parent.DisplayArea.Content, "26429", "","WBS");
+new menuItem("26275", "26430", "Completion of superstructure of all floors ", "./detail/26430.htm", parent.parent.DisplayArea.Content, "26430", "","WBS");
+new menuItem("26430", "26932", "Ground Floor", "./detail/26932.htm", parent.parent.DisplayArea.Content, "26932", "","WBS");
+new menuItem("26430", "26933", "Staircase", "./detail/26933.htm", parent.parent.DisplayArea.Content, "26933", "","WBS");
+new menuItem("26430", "26934", "Brickwork", "./detail/26934.htm", parent.parent.DisplayArea.Content, "26934", "","WBS");
+new menuItem("26430", "26935", "Block work", "./detail/26935.htm", parent.parent.DisplayArea.Content, "26935", "","WBS");
+new menuItem("26430", "26936", "Wall Panels", "./detail/26936.htm", parent.parent.DisplayArea.Content, "26936", "","WBS");
+new menuItem("26430", "26937", "Lift Well", "./detail/26937.htm", parent.parent.DisplayArea.Content, "26937", "","WBS");
+new menuItem("26430", "26938", "Water Tanks", "./detail/26938.htm", parent.parent.DisplayArea.Content, "26938", "","WBS");
+new menuItem("26430", "26939", "Etc items", "./detail/26939.htm", parent.parent.DisplayArea.Content, "26939", "","WBS");
+new menuItem("26275", "26431", "PAYT-On completion of structure in superstructure for all floors including all column, beams, slabs,", "./detail/26431.htm", parent.parent.DisplayArea.Content, "26431", "","WBS");
+new menuItem("26275", "26432", "Completion of floor finishes, External facade work, plumbing, electrical, doors, windows, railing, p", "./detail/26432.htm", parent.parent.DisplayArea.Content, "26432", "","WBS");
+new menuItem("26432", "26940", "Wall finishes", "./detail/26940.htm", parent.parent.DisplayArea.Content, "26940", "","WBS");
+new menuItem("26432", "26941", "doors", "./detail/26941.htm", parent.parent.DisplayArea.Content, "26941", "","WBS");
+new menuItem("26432", "26942", "windows", "./detail/26942.htm", parent.parent.DisplayArea.Content, "26942", "","WBS");
+new menuItem("26432", "26943", "partitions", "./detail/26943.htm", parent.parent.DisplayArea.Content, "26943", "","WBS");
+new menuItem("26432", "26944", "Roof/ceiling Finishes", "./detail/26944.htm", parent.parent.DisplayArea.Content, "26944", "","WBS");
+new menuItem("26432", "26945", "Floor finishes", "./detail/26945.htm", parent.parent.DisplayArea.Content, "26945", "","WBS");
+new menuItem("26432", "26946", "Grills", "./detail/26946.htm", parent.parent.DisplayArea.Content, "26946", "","WBS");
+new menuItem("26432", "26947", "Railing", "./detail/26947.htm", parent.parent.DisplayArea.Content, "26947", "","WBS");
+new menuItem("26432", "26948", "Structural glazing", "./detail/26948.htm", parent.parent.DisplayArea.Content, "26948", "","WBS");
+new menuItem("26432", "26949", "Glass Curtain walls", "./detail/26949.htm", parent.parent.DisplayArea.Content, "26949", "","WBS");
+new menuItem("26432", "26950", "Plumbing work", "./detail/26950.htm", parent.parent.DisplayArea.Content, "26950", "","WBS");
+new menuItem("26432", "26951", "Water Proofing", "./detail/26951.htm", parent.parent.DisplayArea.Content, "26951", "","WBS");
+new menuItem("26432", "26952", "Firefighting works", "./detail/26952.htm", parent.parent.DisplayArea.Content, "26952", "","WBS");
+new menuItem("26432", "26953", "Electric Works including HVAC", "./detail/26953.htm", parent.parent.DisplayArea.Content, "26953", "","WBS");
+new menuItem("26432", "26954", "announcement systems", "./detail/26954.htm", parent.parent.DisplayArea.Content, "26954", "","WBS");
+new menuItem("26432", "26955", "Signages", "./detail/26955.htm", parent.parent.DisplayArea.Content, "26955", "","WBS");
+new menuItem("26432", "26956", "all E & M works", "./detail/26956.htm", parent.parent.DisplayArea.Content, "26956", "","WBS");
+new menuItem("26432", "26957", "Etc Works", "./detail/26957.htm", parent.parent.DisplayArea.Content, "26957", "","WBS");
+new menuItem("26432", "26958", "PAYT-On completion of wall finishes, doors, windows, partitions, roofceiling finishes, Floor finish,", "./detail/26958.htm", parent.parent.DisplayArea.Content, "26958", "","WBS");
+new menuItem("26432", "26959", "Electric Works including Lifts, escalators, HVAC", "./detail/26959.htm", parent.parent.DisplayArea.Content, "26959", "","WBS");
+new menuItem("26432", "26960", "Markings", "./detail/26960.htm", parent.parent.DisplayArea.Content, "26960", "","WBS");
+new menuItem("26432", "26961", "PA system", "./detail/26961.htm", parent.parent.DisplayArea.Content, "26961", "","WBS");
+new menuItem("26432", "26962", "CCTV", "./detail/26962.htm", parent.parent.DisplayArea.Content, "26962", "","WBS");
+new menuItem("26432", "26963", "Access Control Syatem", "./detail/26963.htm", parent.parent.DisplayArea.Content, "26963", "","WBS");
+new menuItem("26432", "26964", "Lighting automation system", "./detail/26964.htm", parent.parent.DisplayArea.Content, "26964", "","WBS");
+new menuItem("26432", "26965", "Displays", "./detail/26965.htm", parent.parent.DisplayArea.Content, "26965", "","WBS");
+new menuItem("26432", "26966", "WiFi", "./detail/26966.htm", parent.parent.DisplayArea.Content, "26966", "","WBS");
+new menuItem("26432", "26967", "IPIS", "./detail/26967.htm", parent.parent.DisplayArea.Content, "26967", "","WBS");
+new menuItem("26432", "26968", "Digital Clocks", "./detail/26968.htm", parent.parent.DisplayArea.Content, "26968", "","WBS");
+new menuItem("26432", "26970", "firefighting system", "./detail/26970.htm", parent.parent.DisplayArea.Content, "26970", "","WBS");
+new menuItem("26432", "26971", "lightening conductors", "./detail/26971.htm", parent.parent.DisplayArea.Content, "26971", "","WBS");
+new menuItem("26432", "26972", "telecom works ", "./detail/26972.htm", parent.parent.DisplayArea.Content, "26972", "","WBS");
+new menuItem("26432", "26974", "PAYT-On completion of related electric works including HVA", "./detail/26974.htm", parent.parent.DisplayArea.Content, "26974", "","WBS");
+new menuItem("26432", "26975", "External facade work", "./detail/26975.htm", parent.parent.DisplayArea.Content, "26975", "","WBS");
+new menuItem("26432", "26976", "Finishing etc.", "./detail/26976.htm", parent.parent.DisplayArea.Content, "26976", "","WBS");
+new menuItem("26432", "26977", "PAYT-On completion of external facade work and finishing etc.", "./detail/26977.htm", parent.parent.DisplayArea.Content, "26977", "","WBS");
+new menuItem("26275", "26433", "Completion, handing over and approval from Authorities ", "./detail/26433.htm", parent.parent.DisplayArea.Content, "26433", "","WBS");
+new menuItem("26433", "26978", "Commissioning", "./detail/26978.htm", parent.parent.DisplayArea.Content, "26978", "","WBS");
+new menuItem("26433", "26979", "Testing", "./detail/26979.htm", parent.parent.DisplayArea.Content, "26979", "","WBS");
+new menuItem("26433", "26980", "obtaining necessary NOC’s and handing over to Authority", "./detail/26980.htm", parent.parent.DisplayArea.Content, "26980", "","WBS");
+new menuItem("26275", "26434", "PAYT-Completion, Commissioning, Testing, obtaining necessary NOC’s and handing over to Authority.", "./detail/26434.htm", parent.parent.DisplayArea.Content, "26434", "","WBS");
+new menuItem("26275", "26435", "Milestone End", "./detail/26435.htm", parent.parent.DisplayArea.Content, "26435", "","WBS");
+new menuItem("26275", "26436", "COS instructions from Authority", "./detail/26436.htm", parent.parent.DisplayArea.Content, "26436", "","WBS");
+new menuItem("26275", "26437", "PAYT-For Change of Scope", "./detail/26437.htm", parent.parent.DisplayArea.Content, "26437", "","WBS");
+new menuItem("26261", "26276", "PM-K-FOOT OVER BRIDGES ", "./detail/26276.htm", parent.parent.DisplayArea.Content, "26276", "","WBS");
+new menuItem("26276", "26438", "Milestone Start ", "./detail/26438.htm", parent.parent.DisplayArea.Content, "26438", "","WBS");
+new menuItem("26276", "26439", "Submission and approval of designs and drawings ", "./detail/26439.htm", parent.parent.DisplayArea.Content, "26439", "","WBS");
+new menuItem("26276", "26440", "PAYT-on Approval of Detailed Design and Drawings", "./detail/26440.htm", parent.parent.DisplayArea.Content, "26440", "","WBS");
+new menuItem("26276", "26441", "Foundation: On completion of 100 % Foundation work (open foundations/pile foundations including pile", "./detail/26441.htm", parent.parent.DisplayArea.Content, "26441", "","WBS");
+new menuItem("26441", "26981", "Foundation work (open foundations / pile foundations including pile caps) and testing, up to plinth ", "./detail/26981.htm", parent.parent.DisplayArea.Content, "26981", "","WBS");
+new menuItem("26276", "26442", "PAYT-On completion of Foundation work (open foundations / pile foundations including pile caps) and ", "./detail/26442.htm", parent.parent.DisplayArea.Content, "26442", "","WBS");
+new menuItem("26276", "26443", "Completion of structural work, roofing etc. complete ", "./detail/26443.htm", parent.parent.DisplayArea.Content, "26443", "","WBS");
+new menuItem("26443", "26982", "Columns", "./detail/26982.htm", parent.parent.DisplayArea.Content, "26982", "","WBS");
+new menuItem("26443", "26983", "Slab", "./detail/26983.htm", parent.parent.DisplayArea.Content, "26983", "","WBS");
+new menuItem("26443", "26984", "Roofing", "./detail/26984.htm", parent.parent.DisplayArea.Content, "26984", "","WBS");
+new menuItem("26443", "26985", "Liftwells", "./detail/26985.htm", parent.parent.DisplayArea.Content, "26985", "","WBS");
+new menuItem("26443", "26986", "Painting", "./detail/26986.htm", parent.parent.DisplayArea.Content, "26986", "","WBS");
+new menuItem("26443", "26987", "Etc items", "./detail/26987.htm", parent.parent.DisplayArea.Content, "26987", "","WBS");
+new menuItem("26276", "26444", "PAYT-On completion of columns, Structural work, slab, roofing, lifts wells, painting etc.", "./detail/26444.htm", parent.parent.DisplayArea.Content, "26444", "","WBS");
+new menuItem("26276", "26445", "Completion of floor finishes, electrical, announcement systems, Signages, railing, external facade, ", "./detail/26445.htm", parent.parent.DisplayArea.Content, "26445", "","WBS");
+new menuItem("26445", "26988", "Floor finishes", "./detail/26988.htm", parent.parent.DisplayArea.Content, "26988", "","WBS");
+new menuItem("26445", "26989", "Stairs/Ramps", "./detail/26989.htm", parent.parent.DisplayArea.Content, "26989", "","WBS");
+new menuItem("26445", "26990", "SS Railing", "./detail/26990.htm", parent.parent.DisplayArea.Content, "26990", "","WBS");
+new menuItem("26445", "26991", "Toughened Glass", "./detail/26991.htm", parent.parent.DisplayArea.Content, "26991", "","WBS");
+new menuItem("26445", "26992", "Cladding Work", "./detail/26992.htm", parent.parent.DisplayArea.Content, "26992", "","WBS");
+new menuItem("26445", "26993", "Etc Works", "./detail/26993.htm", parent.parent.DisplayArea.Content, "26993", "","WBS");
+new menuItem("26445", "26994", "PAYT-On completion of floor finishes, stairs/ramps, SS railings, toughened glass, cladding work etc.", "./detail/26994.htm", parent.parent.DisplayArea.Content, "26994", "","WBS");
+new menuItem("26445", "26995", "Electric Works including Lifts, escalators, ", "./detail/26995.htm", parent.parent.DisplayArea.Content, "26995", "","WBS");
+new menuItem("26445", "26996", "E&M services", "./detail/26996.htm", parent.parent.DisplayArea.Content, "26996", "","WBS");
+new menuItem("26445", "26997", "Markings", "./detail/26997.htm", parent.parent.DisplayArea.Content, "26997", "","WBS");
+new menuItem("26445", "26998", "PA system", "./detail/26998.htm", parent.parent.DisplayArea.Content, "26998", "","WBS");
+new menuItem("26445", "26999", "CCTV", "./detail/26999.htm", parent.parent.DisplayArea.Content, "26999", "","WBS");
+new menuItem("26445", "27000", "Displays", "./detail/27000.htm", parent.parent.DisplayArea.Content, "27000", "","WBS");
+new menuItem("26445", "27001", "WiFi", "./detail/27001.htm", parent.parent.DisplayArea.Content, "27001", "","WBS");
+new menuItem("26445", "27002", "IPIS", "./detail/27002.htm", parent.parent.DisplayArea.Content, "27002", "","WBS");
+new menuItem("26445", "27003", "Digital Clocks", "./detail/27003.htm", parent.parent.DisplayArea.Content, "27003", "","WBS");
+new menuItem("26445", "27004", "Signages", "./detail/27004.htm", parent.parent.DisplayArea.Content, "27004", "","WBS");
+new menuItem("26445", "27005", "Telecom works", "./detail/27005.htm", parent.parent.DisplayArea.Content, "27005", "","WBS");
+new menuItem("26445", "27006", "Drainage", "./detail/27006.htm", parent.parent.DisplayArea.Content, "27006", "","WBS");
+new menuItem("26445", "27007", "Firefighting works", "./detail/27007.htm", parent.parent.DisplayArea.Content, "27007", "","WBS");
+new menuItem("26445", "27009", "PAYT- On completion of related electric works, lifts/escalators, E&M services, markings, PA system, ", "./detail/27009.htm", parent.parent.DisplayArea.Content, "27009", "","WBS");
+new menuItem("26276", "26446", "Completion, handing over and approval from Authorities ", "./detail/26446.htm", parent.parent.DisplayArea.Content, "26446", "","WBS");
+new menuItem("26446", "27010", "Commissioning", "./detail/27010.htm", parent.parent.DisplayArea.Content, "27010", "","WBS");
+new menuItem("26446", "27011", "Testing", "./detail/27011.htm", parent.parent.DisplayArea.Content, "27011", "","WBS");
+new menuItem("26446", "27012", "obtaining necessary NOC’s and handing over to Authority", "./detail/27012.htm", parent.parent.DisplayArea.Content, "27012", "","WBS");
+new menuItem("26276", "26447", "PAYT-Completion, Commissioning, Testing, obtaining necessary NOC’s and handing over to Authority.", "./detail/26447.htm", parent.parent.DisplayArea.Content, "26447", "","WBS");
+new menuItem("26276", "26448", "Milestone End", "./detail/26448.htm", parent.parent.DisplayArea.Content, "26448", "","WBS");
+new menuItem("26276", "26449", "COS instructions from Authority", "./detail/26449.htm", parent.parent.DisplayArea.Content, "26449", "","WBS");
+new menuItem("26276", "26450", "PAYT-For Change of Scope", "./detail/26450.htm", parent.parent.DisplayArea.Content, "26450", "","WBS");
+new menuItem("26261", "26277", "PM-L-RESIDENTIAL QUARTERS ", "./detail/26277.htm", parent.parent.DisplayArea.Content, "26277", "","WBS");
+new menuItem("26277", "26451", "Milestone Start ", "./detail/26451.htm", parent.parent.DisplayArea.Content, "26451", "","WBS");
+new menuItem("26277", "26452", "Submission and approval of designs and drawings ", "./detail/26452.htm", parent.parent.DisplayArea.Content, "26452", "","WBS");
+new menuItem("26277", "26453", "PAYT-on Approval of Detailed Design and Drawings", "./detail/26453.htm", parent.parent.DisplayArea.Content, "26453", "","WBS");
+new menuItem("26277", "26454", "Foundation: On completion of 100 % Foundation work (open foundations/pile foundations including pile", "./detail/26454.htm", parent.parent.DisplayArea.Content, "26454", "","WBS");
+new menuItem("26454", "27013", "Foundation work (open foundations / pile foundations including pile caps) and testing, up to plinth ", "./detail/27013.htm", parent.parent.DisplayArea.Content, "27013", "","WBS");
+new menuItem("26277", "26455", "PAYT-On completion of Foundation work (open foundations / pile foundations including pile caps) and ", "./detail/26455.htm", parent.parent.DisplayArea.Content, "26455", "","WBS");
+new menuItem("26277", "26456", "Completion of superstructure of all floors ", "./detail/26456.htm", parent.parent.DisplayArea.Content, "26456", "","WBS");
+new menuItem("26456", "27014", "Ground Floor", "./detail/27014.htm", parent.parent.DisplayArea.Content, "27014", "","WBS");
+new menuItem("26456", "27015", "First Floor", "./detail/27015.htm", parent.parent.DisplayArea.Content, "27015", "","WBS");
+new menuItem("26456", "27016", "Staircase", "./detail/27016.htm", parent.parent.DisplayArea.Content, "27016", "","WBS");
+new menuItem("26456", "27017", "Brickwork", "./detail/27017.htm", parent.parent.DisplayArea.Content, "27017", "","WBS");
+new menuItem("26456", "27018", "Block work", "./detail/27018.htm", parent.parent.DisplayArea.Content, "27018", "","WBS");
+new menuItem("26456", "27019", "Wall Panels", "./detail/27019.htm", parent.parent.DisplayArea.Content, "27019", "","WBS");
+new menuItem("26456", "27020", "Lift Well", "./detail/27020.htm", parent.parent.DisplayArea.Content, "27020", "","WBS");
+new menuItem("26456", "27021", "Water Tanks", "./detail/27021.htm", parent.parent.DisplayArea.Content, "27021", "","WBS");
+new menuItem("26456", "27022", "Etc items", "./detail/27022.htm", parent.parent.DisplayArea.Content, "27022", "","WBS");
+new menuItem("26277", "26457", "PAYT-On completion of structure in superstructure for all floors including all column, beams, slabs,", "./detail/26457.htm", parent.parent.DisplayArea.Content, "26457", "","WBS");
+new menuItem("26277", "26458", "Completion of floor finishes, External facade work, plumbing, electrical, doors, windows, railing, p", "./detail/26458.htm", parent.parent.DisplayArea.Content, "26458", "","WBS");
+new menuItem("26458", "27023", "Wall finishes", "./detail/27023.htm", parent.parent.DisplayArea.Content, "27023", "","WBS");
+new menuItem("26458", "27024", "doors", "./detail/27024.htm", parent.parent.DisplayArea.Content, "27024", "","WBS");
+new menuItem("26458", "27025", "windows", "./detail/27025.htm", parent.parent.DisplayArea.Content, "27025", "","WBS");
+new menuItem("26458", "27026", "partitions", "./detail/27026.htm", parent.parent.DisplayArea.Content, "27026", "","WBS");
+new menuItem("26458", "27027", "Roof/ceiling Finishes", "./detail/27027.htm", parent.parent.DisplayArea.Content, "27027", "","WBS");
+new menuItem("26458", "27028", "Floor finishes", "./detail/27028.htm", parent.parent.DisplayArea.Content, "27028", "","WBS");
+new menuItem("26458", "27029", "Grills", "./detail/27029.htm", parent.parent.DisplayArea.Content, "27029", "","WBS");
+new menuItem("26458", "27033", "Firefighting works", "./detail/27033.htm", parent.parent.DisplayArea.Content, "27033", "","WBS");
+new menuItem("26458", "27034", "Railing", "./detail/27034.htm", parent.parent.DisplayArea.Content, "27034", "","WBS");
+new menuItem("26458", "27035", "Etc Works", "./detail/27035.htm", parent.parent.DisplayArea.Content, "27035", "","WBS");
+new menuItem("26458", "27036", "PAYT-On completion of wall finishes, roofceiling finishes, Floor finish, grills, doors, windows, fir", "./detail/27036.htm", parent.parent.DisplayArea.Content, "27036", "","WBS");
+new menuItem("26458", "27037", "Toilet Works", "./detail/27037.htm", parent.parent.DisplayArea.Content, "27037", "","WBS");
+new menuItem("26458", "27038", "Sanitary Works", "./detail/27038.htm", parent.parent.DisplayArea.Content, "27038", "","WBS");
+new menuItem("26458", "27039", "Plinth Protection work", "./detail/27039.htm", parent.parent.DisplayArea.Content, "27039", "","WBS");
+new menuItem("26458", "27040", "Roof Treatment Work", "./detail/27040.htm", parent.parent.DisplayArea.Content, "27040", "","WBS");
+new menuItem("26458", "27041", "PAYT-On completion of toilets work, sanitary works, plinth protection work, roof treatment work.", "./detail/27041.htm", parent.parent.DisplayArea.Content, "27041", "","WBS");
+new menuItem("26458", "27042", "Electric works", "./detail/27042.htm", parent.parent.DisplayArea.Content, "27042", "","WBS");
+new menuItem("26458", "27043", "CCTV", "./detail/27043.htm", parent.parent.DisplayArea.Content, "27043", "","WBS");
+new menuItem("26458", "27044", " Firefighting system works", "./detail/27044.htm", parent.parent.DisplayArea.Content, "27044", "","WBS");
+new menuItem("26458", "27046", "PAYT-On completion of related electric works including CCTV, firefighting system works complete in a", "./detail/27046.htm", parent.parent.DisplayArea.Content, "27046", "","WBS");
+new menuItem("26458", "27047", "External facade work", "./detail/27047.htm", parent.parent.DisplayArea.Content, "27047", "","WBS");
+new menuItem("26458", "27048", "Finishing work", "./detail/27048.htm", parent.parent.DisplayArea.Content, "27048", "","WBS");
+new menuItem("26458", "27050", "PAYT-On completion of external facade work and finishing etc.", "./detail/27050.htm", parent.parent.DisplayArea.Content, "27050", "","WBS");
+new menuItem("26277", "26459", "Completion, handing over and approval from Authorities ", "./detail/26459.htm", parent.parent.DisplayArea.Content, "26459", "","WBS");
+new menuItem("26459", "27051", "Commissioning", "./detail/27051.htm", parent.parent.DisplayArea.Content, "27051", "","WBS");
+new menuItem("26459", "27052", "Testing", "./detail/27052.htm", parent.parent.DisplayArea.Content, "27052", "","WBS");
+new menuItem("26459", "27053", "obtaining necessary NOC’s and handing over to Authority", "./detail/27053.htm", parent.parent.DisplayArea.Content, "27053", "","WBS");
+new menuItem("26277", "26460", "PAYT-Completion, Commissioning, Testing, obtaining necessary NOC’s and handing over to Authority.", "./detail/26460.htm", parent.parent.DisplayArea.Content, "26460", "","WBS");
+new menuItem("26277", "26461", "Milestone End", "./detail/26461.htm", parent.parent.DisplayArea.Content, "26461", "","WBS");
+new menuItem("26277", "26462", "COS instructions from Authority", "./detail/26462.htm", parent.parent.DisplayArea.Content, "26462", "","WBS");
+new menuItem("26277", "26463", "PAYT-For Change of Scope", "./detail/26463.htm", parent.parent.DisplayArea.Content, "26463", "","WBS");
+new menuItem("26261", "26278", "PM-M-MISC. WORKS ", "./detail/26278.htm", parent.parent.DisplayArea.Content, "26278", "","WBS");
+new menuItem("26278", "26464", "Milestone Start ", "./detail/26464.htm", parent.parent.DisplayArea.Content, "26464", "","WBS");
+new menuItem("26278", "26465", "Submission and approval of designs and drawings ", "./detail/26465.htm", parent.parent.DisplayArea.Content, "26465", "","WBS");
+new menuItem("26278", "26466", "SUBSTATION : supplying, installation, testing and commissioning of 33kv/0.433kv or 11kv/0.433 kv a/c", "./detail/26466.htm", parent.parent.DisplayArea.Content, "26466", "","WBS");
+new menuItem("26466", "27054", "HT Panel", "./detail/27054.htm", parent.parent.DisplayArea.Content, "27054", "","WBS");
+new menuItem("26466", "27055", "Dry type Transformer", "./detail/27055.htm", parent.parent.DisplayArea.Content, "27055", "","WBS");
+new menuItem("26466", "27056", "Ht Cables", "./detail/27056.htm", parent.parent.DisplayArea.Content, "27056", "","WBS");
+new menuItem("26466", "27057", "Bus Trunking from transformer to IT Panel", "./detail/27057.htm", parent.parent.DisplayArea.Content, "27057", "","WBS");
+new menuItem("26466", "27058", "IT Panel", "./detail/27058.htm", parent.parent.DisplayArea.Content, "27058", "","WBS");
+new menuItem("26466", "27059", "Automatic power factor correction panel", "./detail/27059.htm", parent.parent.DisplayArea.Content, "27059", "","WBS");
+new menuItem("26466", "27060", "Active harmonic filters", "./detail/27060.htm", parent.parent.DisplayArea.Content, "27060", "","WBS");
+new menuItem("26466", "27061", "transient voltage suppression system", "./detail/27061.htm", parent.parent.DisplayArea.Content, "27061", "","WBS");
+new menuItem("26466", "27062", "surge protection system", "./detail/27062.htm", parent.parent.DisplayArea.Content, "27062", "","WBS");
+new menuItem("26466", "27063", "essential panel", "./detail/27063.htm", parent.parent.DisplayArea.Content, "27063", "","WBS");
+new menuItem("26466", "27064", "earthing", "./detail/27064.htm", parent.parent.DisplayArea.Content, "27064", "","WBS");
+new menuItem("26466", "27065", "required interconnections", "./detail/27065.htm", parent.parent.DisplayArea.Content, "27065", "","WBS");
+new menuItem("26466", "27066", "substation safety equipments", "./detail/27066.htm", parent.parent.DisplayArea.Content, "27066", "","WBS");
+new menuItem("26466", "27067", "lt cabling from substation to the buildings fed by the substation.( 2 no 1600 kva including one stan", "./detail/27067.htm", parent.parent.DisplayArea.Content, "27067", "","WBS");
+new menuItem("26466", "27068", "Testing and commissioning", "./detail/27068.htm", parent.parent.DisplayArea.Content, "27068", "","WBS");
+new menuItem("26278", "26467", "PAYT-SUBSTATION : supplying, installation, testing and commissioning of 33kv/0.433kv or 11kv/0.433 k", "./detail/26467.htm", parent.parent.DisplayArea.Content, "26467", "","WBS");
+new menuItem("26278", "26468", "DG SET: supplying, installation, testing and commissioning of silent type dg sets,amf panel a/c to a", "./detail/26468.htm", parent.parent.DisplayArea.Content, "26468", "","WBS");
+new menuItem("26468", "27069", "silent type dg sets", "./detail/27069.htm", parent.parent.DisplayArea.Content, "27069", "","WBS");
+new menuItem("26468", "27070", "amf panel", "./detail/27070.htm", parent.parent.DisplayArea.Content, "27070", "","WBS");
+new menuItem("26468", "27071", "bus ducting/ cables from dg sets to essential panel", "./detail/27071.htm", parent.parent.DisplayArea.Content, "27071", "","WBS");
+new menuItem("26468", "27072", "synchronizing  panel where required", "./detail/27072.htm", parent.parent.DisplayArea.Content, "27072", "","WBS");
+new menuItem("26468", "27073", "dg set enclosure room sound insulation/ventilation/smoke exhaust as required", "./detail/27073.htm", parent.parent.DisplayArea.Content, "27073", "","WBS");
+new menuItem("26468", "27074", "earthing of dg set system", "./detail/27074.htm", parent.parent.DisplayArea.Content, "27074", "","WBS");
+new menuItem("26468", "27075", "control cabling", "./detail/27075.htm", parent.parent.DisplayArea.Content, "27075", "","WBS");
+new menuItem("26468", "27076", "fuel tank/piping", "./detail/27076.htm", parent.parent.DisplayArea.Content, "27076", "","WBS");
+new menuItem("26468", "27077", "dg set exhaust piping/ exhaust chimney as per cpcb norms", "./detail/27077.htm", parent.parent.DisplayArea.Content, "27077", "","WBS");
+new menuItem("26468", "27078", "civil works connected with dg sets including foundation as required", "./detail/27078.htm", parent.parent.DisplayArea.Content, "27078", "","WBS");
+new menuItem("26468", "27079", "testing and commissioning", "./detail/27079.htm", parent.parent.DisplayArea.Content, "27079", "","WBS");
+new menuItem("26278", "26469", "PAYT-DG SET: supplying, installation, testing and commissioning of silent type dg sets,amf panel, bu", "./detail/26469.htm", parent.parent.DisplayArea.Content, "26469", "","WBS");
+new menuItem("26278", "26470", "UNINTERRUPTED POWER SUPPLY", "./detail/26470.htm", parent.parent.DisplayArea.Content, "26470", "","WBS");
+new menuItem("26470", "27080", "Supplying,Installation, Testing and Commissioning  of Online 3 Phase Ups System With 30 Minutes Back", "./detail/27080.htm", parent.parent.DisplayArea.Content, "27080", "","WBS");
+new menuItem("26278", "26471", "PAYT-UNINTERRUPTED POWER SUPPLY -Supplying,Installation, Testing and Commissioning  of Online 3 Phas", "./detail/26471.htm", parent.parent.DisplayArea.Content, "26471", "","WBS");
+new menuItem("26278", "26472", "VRV/VRF AC SYSTEM-- Supplying, installation, testing and commissioning of energy efficient", "./detail/26472.htm", parent.parent.DisplayArea.Content, "26472", "","WBS");
+new menuItem("26472", "27081", "Supplying, installation, testing and commissioning of energy efficient central AC Plant including lo", "./detail/27081.htm", parent.parent.DisplayArea.Content, "27081", "","WBS");
+new menuItem("26278", "26473", "PAYT-AC PLANT/ SYSTEM-- Supplying, installation, testing and commissioning of energy efficient centr", "./detail/26473.htm", parent.parent.DisplayArea.Content, "26473", "","WBS");
+new menuItem("26278", "26474", "Supply, Installation, Testing and commissioning of Air- Cooling equipment", "./detail/26474.htm", parent.parent.DisplayArea.Content, "26474", "","WBS");
+new menuItem("26474", "27082", "Air-Cooling equipment including 2 Nos X 46500 CFM Air Washers of double skin Construction", "./detail/27082.htm", parent.parent.DisplayArea.Content, "27082", "","WBS");
+new menuItem("26278", "26475", "PAYT-Supply, Installation, Testing and commissioning of Air- Cooling equipment as per scope of work ", "./detail/26475.htm", parent.parent.DisplayArea.Content, "26475", "","WBS");
+new menuItem("26278", "26476", "SOLAR PHOTO VOLTAIC POWER GENERATION SYSTEM AND SOLAR WATER HEATING SYSTEM", "./detail/26476.htm", parent.parent.DisplayArea.Content, "26476", "","WBS");
+new menuItem("26476", "27083", "supplying, installation, testing and commissioning of SOLAR PHOTO VOLTAIC POWER GENERATION SYSTEM ", "./detail/27083.htm", parent.parent.DisplayArea.Content, "27083", "","WBS");
+new menuItem("26476", "27084", "supplying, installation, testing and commissioning of SOLAR WATER HEATING SYSTEM", "./detail/27084.htm", parent.parent.DisplayArea.Content, "27084", "","WBS");
+new menuItem("26278", "26477", "PAYT-SOLAR PHOTO VOLTAIC POWER GENERATION SYSTEM &SOLAR WATER HEATING SYSTEM", "./detail/26477.htm", parent.parent.DisplayArea.Content, "26477", "","WBS");
+new menuItem("26278", "26478", "CCTV SYSTEM -- supplying, installation, testing and commissioning of ip based cctv system for buildi", "./detail/26478.htm", parent.parent.DisplayArea.Content, "26478", "","WBS");
+new menuItem("26478", "27085", "supplying, installation, testing and commissioning of ip based cctv system for building security com", "./detail/27085.htm", parent.parent.DisplayArea.Content, "27085", "","WBS");
+new menuItem("26278", "26479", "PAYT-CCTV SYSTEM -- supplying, installation, testing and commissioning of ip based cctv system for b", "./detail/26479.htm", parent.parent.DisplayArea.Content, "26479", "","WBS");
+new menuItem("26278", "26480", "STREET LIGHTING WITH LED -- supplying,", "./detail/26480.htm", parent.parent.DisplayArea.Content, "26480", "","WBS");
+new menuItem("26480", "27086", "supplying,installation, testing and commissioning of led street/ compound/ high mast/ pathway/ lands", "./detail/27086.htm", parent.parent.DisplayArea.Content, "27086", "","WBS");
+new menuItem("26278", "26481", "PAYT-STREET LIGHTING WITH LED -- supplying,installation, testing and commissioning of led street/ co", "./detail/26481.htm", parent.parent.DisplayArea.Content, "26481", "","WBS");
+new menuItem("26278", "26482", "STP/ETP PLANT -- supplying, installation, testing and commissioning.", "./detail/26482.htm", parent.parent.DisplayArea.Content, "26482", "","WBS");
+new menuItem("26482", "27087", "supplying, installation, testing and commissioning of STP/ETP of appropriate technology including ci", "./detail/27087.htm", parent.parent.DisplayArea.Content, "27087", "","WBS");
+new menuItem("26278", "26483", "PAYT-STP/ETP PLANT -- supplying, installation, testing and commissioning of STP/ETP of appropriate t", "./detail/26483.htm", parent.parent.DisplayArea.Content, "26483", "","WBS");
+new menuItem("26278", "26484", "EMERGENCY LIGHT & ILLUMINATED SIGNAGE circulating area/road etc as per DBR, Scope of work, drawings ", "./detail/26484.htm", parent.parent.DisplayArea.Content, "26484", "","WBS");
+new menuItem("26484", "27088", "Supplying fitting fixing and commissioning of EMERGENCY LIGHT & ILLUMINATED SIGNAGE circulating area", "./detail/27088.htm", parent.parent.DisplayArea.Content, "27088", "","WBS");
+new menuItem("26278", "26485", "PAYT-ILLUMINATED SIGNAGE circulating area/road etc as per DBR, Scope of work, drawings and actual si", "./detail/26485.htm", parent.parent.DisplayArea.Content, "26485", "","WBS");
+new menuItem("26278", "26486", "RO System, Plastic bottle crushers, Waste Disposal/ Dustbin, ", "./detail/26486.htm", parent.parent.DisplayArea.Content, "26486", "","WBS");
+new menuItem("26278", "26487", "Access control gates etc at all required locations ", "./detail/26487.htm", parent.parent.DisplayArea.Content, "26487", "","WBS");
+new menuItem("26487", "27089", "RO System", "./detail/27089.htm", parent.parent.DisplayArea.Content, "27089", "","WBS");
+new menuItem("26487", "27090", "Plastic bottle crushers", "./detail/27090.htm", parent.parent.DisplayArea.Content, "27090", "","WBS");
+new menuItem("26487", "27091", "Waste Disposal/ Dustbin", "./detail/27091.htm", parent.parent.DisplayArea.Content, "27091", "","WBS");
+new menuItem("26487", "27092", "Access control gates etc at all required locations", "./detail/27092.htm", parent.parent.DisplayArea.Content, "27092", "","WBS");
+new menuItem("26278", "26488", "PAYT-RO System, Plastic bottle crushers, Waste Disposal/ Dustbin, Access control gates etc at all re", "./detail/26488.htm", parent.parent.DisplayArea.Content, "26488", "","WBS");
+new menuItem("26278", "26489", "BAGGAGE SCANNER BIG: Baggage scanner Big: computer based multi energy X-Ray Baggage Inspection Syste", "./detail/26489.htm", parent.parent.DisplayArea.Content, "26489", "","WBS");
+new menuItem("26489", "27093", "Baggage scanner Big computer based multi energy X-Ray Baggage Inspection System", "./detail/27093.htm", parent.parent.DisplayArea.Content, "27093", "","WBS");
+new menuItem("26278", "26490", "PAYT-BAGGAGE SCANNER BIG: Baggage scanner Big: computer based multi energy X-Ray Baggage Inspection ", "./detail/26490.htm", parent.parent.DisplayArea.Content, "26490", "","WBS");
+new menuItem("26278", "26491", "Door frame Metal Detector -- 20 zone or above Door frame Metal detector.", "./detail/26491.htm", parent.parent.DisplayArea.Content, "26491", "","WBS");
+new menuItem("26491", "27094", "Door frame Metal Detector -- 20 zone or above", "./detail/27094.htm", parent.parent.DisplayArea.Content, "27094", "","WBS");
+new menuItem("26278", "26492", "PAYT-Door frame Metal Detector -- 20 zone or above Door frame Metal detector nominal Size: 760 mm (W", "./detail/26492.htm", parent.parent.DisplayArea.Content, "26492", "","WBS");
+new menuItem("26278", "26493", "Supply fitting fixing commissioning of Boom barrier for cars", "./detail/26493.htm", parent.parent.DisplayArea.Content, "26493", "","WBS");
+new menuItem("26278", "26494", "PAYT-Boom barrier for cars", "./detail/26494.htm", parent.parent.DisplayArea.Content, "26494", "","WBS");
+new menuItem("26278", "26495", "EV Charging Stations", "./detail/26495.htm", parent.parent.DisplayArea.Content, "26495", "","WBS");
+new menuItem("26495", "27095", "Supply fitting fixing commissioning of  EV Charging units station as per scope of work", "./detail/27095.htm", parent.parent.DisplayArea.Content, "27095", "","WBS");
+new menuItem("26278", "26496", "PAYT-Completion of EV Charging units station as per scope of work", "./detail/26496.htm", parent.parent.DisplayArea.Content, "26496", "","WBS");
+new menuItem("26278", "26497", "Providing and fixing stainless steel three- seater bench with back.", "./detail/26497.htm", parent.parent.DisplayArea.Content, "26497", "","WBS");
+new menuItem("26278", "26498", "PAYT for Providing and fixing stainless steel three- seater bench with back.", "./detail/26498.htm", parent.parent.DisplayArea.Content, "26498", "","WBS");
+new menuItem("26278", "26499", "HYDRO PNEUMATIC WATER SUPPLY SYSTEM", "./detail/26499.htm", parent.parent.DisplayArea.Content, "26499", "","WBS");
+new menuItem("26499", "27096", "Supplying, installation, testing and commissioning of Hydro pneumatic water supply system consisting", "./detail/27096.htm", parent.parent.DisplayArea.Content, "27096", "","WBS");
+new menuItem("26278", "26500", "PAYT-HYDRO PNEUMATIC WATER SUPPLY SYSTEM Supplying, installation, testing and commissioning of Hydro", "./detail/26500.htm", parent.parent.DisplayArea.Content, "26500", "","WBS");
+new menuItem("26278", "26501", "IP BASED INFORMATION DISPLAY PANEL ", "./detail/26501.htm", parent.parent.DisplayArea.Content, "26501", "","WBS");
+new menuItem("26278", "26502", "Providing and fixing Facade lights, Digital Clock & Drum Clock", "./detail/26502.htm", parent.parent.DisplayArea.Content, "26502", "","WBS");
+new menuItem("26502", "27097", "Supply fitting fixing commissioning of IP BASED INFORMATION DISPLAY PANEL LED of different sizes", "./detail/27097.htm", parent.parent.DisplayArea.Content, "27097", "","WBS");
+new menuItem("26502", "27098", "Professional display system, other display panels/boards", "./detail/27098.htm", parent.parent.DisplayArea.Content, "27098", "","WBS");
+new menuItem("26502", "27099", "Integrated passenger Information display system", "./detail/27099.htm", parent.parent.DisplayArea.Content, "27099", "","WBS");
+new menuItem("26502", "27100", "public address system", "./detail/27100.htm", parent.parent.DisplayArea.Content, "27100", "","WBS");
+new menuItem("26502", "27101", "online ticket dispenser system ", "./detail/27101.htm", parent.parent.DisplayArea.Content, "27101", "","WBS");
+new menuItem("26502", "27102", "Providing and fixing Facade lights", "./detail/27102.htm", parent.parent.DisplayArea.Content, "27102", "","WBS");
+new menuItem("26502", "27103", "Providing and fixing  Digital Clock & Drum Clock with GPS Based", "./detail/27103.htm", parent.parent.DisplayArea.Content, "27103", "","WBS");
+new menuItem("26502", "27104", "Etc Works", "./detail/27104.htm", parent.parent.DisplayArea.Content, "27104", "","WBS");
+new menuItem("26278", "26503", "PAYT-Providing and fixing Facade lights, Digital Clock & Drum Clock with GPS Based, information disp", "./detail/26503.htm", parent.parent.DisplayArea.Content, "26503", "","WBS");
+new menuItem("26278", "26504", "Providing and fixing stainless steel three-seater bench with back", "./detail/26504.htm", parent.parent.DisplayArea.Content, "26504", "","WBS");
+new menuItem("26278", "26505", "PAYT-Providing and fixing stainless steel three-seater bench with back", "./detail/26505.htm", parent.parent.DisplayArea.Content, "26505", "","WBS");
+new menuItem("26278", "26506", "Completion, handing over and approval from Authorities ", "./detail/26506.htm", parent.parent.DisplayArea.Content, "26506", "","WBS");
+new menuItem("26278", "26507", "Milestone End", "./detail/26507.htm", parent.parent.DisplayArea.Content, "26507", "","WBS");
+new menuItem("26278", "26508", "COS-Instructions from AE", "./detail/26508.htm", parent.parent.DisplayArea.Content, "26508", "","WBS");
+new menuItem("26278", "26509", "PAYT-For Change of Scope", "./detail/26509.htm", parent.parent.DisplayArea.Content, "26509", "","WBS");
+new menuItem("26261", "26279", "PM-N-REFURBISHMENT OF PLATFORM & SHED", "./detail/26279.htm", parent.parent.DisplayArea.Content, "26279", "","WBS");
+new menuItem("26279", "26510", "Milestone Start ", "./detail/26510.htm", parent.parent.DisplayArea.Content, "26510", "","WBS");
+new menuItem("26279", "26511", "Submission and approval of designs and drawings ", "./detail/26511.htm", parent.parent.DisplayArea.Content, "26511", "","WBS");
+new menuItem("26279", "26512", "PAYT-Approval of Detailed Design and Drawings", "./detail/26512.htm", parent.parent.DisplayArea.Content, "26512", "","WBS");
+new menuItem("26279", "26513", "Dismantling of existing covering, flooring, platform walls, excavation, disposal etc. (dismantled ma", "./detail/26513.htm", parent.parent.DisplayArea.Content, "26513", "","WBS");
+new menuItem("26279", "26514", "PAYT-Dismantling of existing covering, flooring, platform walls, excavation, disposal etc. (dismantl", "./detail/26514.htm", parent.parent.DisplayArea.Content, "26514", "","WBS");
+new menuItem("26279", "26515", "Foundation: On completion of 100 % Foundation work ", "./detail/26515.htm", parent.parent.DisplayArea.Content, "26515", "","WBS");
+new menuItem("26279", "26516", "PAYT-Completion of foundation, columns with hub & trusses/girders for Covering, roofing with sheets,", "./detail/26516.htm", parent.parent.DisplayArea.Content, "26516", "","WBS");
+new menuItem("26279", "26517", "Completion of superstructure ", "./detail/26517.htm", parent.parent.DisplayArea.Content, "26517", "","WBS");
+new menuItem("26279", "26518", "PAYT-Completion of platform walls with precast RCC members, base concrete, plastering, painting etc.", "./detail/26518.htm", parent.parent.DisplayArea.Content, "26518", "","WBS");
+new menuItem("26279", "26519", "Completion of floor finishes, plastering, finishing, plumbing, electrical work, announcement systems", "./detail/26519.htm", parent.parent.DisplayArea.Content, "26519", "","WBS");
+new menuItem("26519", "27105", "Completion of service trenches with RCC precast members, excavation, base concrete, installation, co", "./detail/27105.htm", parent.parent.DisplayArea.Content, "27105", "","WBS");
+new menuItem("26519", "27106", "PAYT-Completion of service trenches with RCC precast members, excavation, base concrete, installatio", "./detail/27106.htm", parent.parent.DisplayArea.Content, "27106", "","WBS");
+new menuItem("26519", "27107", "Completion of Floor finishes, granite flooring, kota flooring, tectile flooring, painting work etc", "./detail/27107.htm", parent.parent.DisplayArea.Content, "27107", "","WBS");
+new menuItem("26519", "27108", "PAYT-Completion of Floor finishes, granite flooring, kota flooring, tectile flooring, painting work ", "./detail/27108.htm", parent.parent.DisplayArea.Content, "27108", "","WBS");
+new menuItem("26519", "27109", "Electric Works including Lifts, escalators, ", "./detail/27109.htm", parent.parent.DisplayArea.Content, "27109", "","WBS");
+new menuItem("26519", "27110", "Markings", "./detail/27110.htm", parent.parent.DisplayArea.Content, "27110", "","WBS");
+new menuItem("26519", "27111", "PA system", "./detail/27111.htm", parent.parent.DisplayArea.Content, "27111", "","WBS");
+new menuItem("26519", "27112", "CCTV", "./detail/27112.htm", parent.parent.DisplayArea.Content, "27112", "","WBS");
+new menuItem("26519", "27113", "Displays", "./detail/27113.htm", parent.parent.DisplayArea.Content, "27113", "","WBS");
+new menuItem("26519", "27114", "WiFi", "./detail/27114.htm", parent.parent.DisplayArea.Content, "27114", "","WBS");
+new menuItem("26519", "27115", "IPIS", "./detail/27115.htm", parent.parent.DisplayArea.Content, "27115", "","WBS");
+new menuItem("26519", "27116", "Digital Clocks", "./detail/27116.htm", parent.parent.DisplayArea.Content, "27116", "","WBS");
+new menuItem("26519", "27117", "Signages", "./detail/27117.htm", parent.parent.DisplayArea.Content, "27117", "","WBS");
+new menuItem("26519", "27118", "Telecom works", "./detail/27118.htm", parent.parent.DisplayArea.Content, "27118", "","WBS");
+new menuItem("26519", "27119", "E&M services", "./detail/27119.htm", parent.parent.DisplayArea.Content, "27119", "","WBS");
+new menuItem("26519", "27120", "Firefighting works", "./detail/27120.htm", parent.parent.DisplayArea.Content, "27120", "","WBS");
+new menuItem("26519", "27121", "Plumbing work", "./detail/27121.htm", parent.parent.DisplayArea.Content, "27121", "","WBS");
+new menuItem("26519", "27122", "Drainage", "./detail/27122.htm", parent.parent.DisplayArea.Content, "27122", "","WBS");
+new menuItem("26519", "27123", "Etc works", "./detail/27123.htm", parent.parent.DisplayArea.Content, "27123", "","WBS");
+new menuItem("26519", "27124", "PAYT-On completion of related electric works, markings, PA system, CCTV, Displays, WiFi, IPIS, Digit", "./detail/27124.htm", parent.parent.DisplayArea.Content, "27124", "","WBS");
+new menuItem("26279", "26520", "Completion, handing over and approval from Authorities ", "./detail/26520.htm", parent.parent.DisplayArea.Content, "26520", "","WBS");
+new menuItem("26279", "26521", "PAYT-Completion, Commissioning, Testing, obtaining necessary NOC’s and Handing over to Authority.", "./detail/26521.htm", parent.parent.DisplayArea.Content, "26521", "","WBS");
+new menuItem("26279", "26522", "Milestone End", "./detail/26522.htm", parent.parent.DisplayArea.Content, "26522", "","WBS");
+new menuItem("26279", "26523", "COS-Instructions from AE", "./detail/26523.htm", parent.parent.DisplayArea.Content, "26523", "","WBS");
+new menuItem("26279", "26524", "PAYT-For Change of Scope", "./detail/26524.htm", parent.parent.DisplayArea.Content, "26524", "","WBS");
+new menuItem("26261", "26280", "PM-O-Refurbishment of existing building ", "./detail/26280.htm", parent.parent.DisplayArea.Content, "26280", "","WBS");
+new menuItem("26280", "26525", "Milestone Start ", "./detail/26525.htm", parent.parent.DisplayArea.Content, "26525", "","WBS");
+new menuItem("26280", "26526", "Submission and approval of designs and drawings ", "./detail/26526.htm", parent.parent.DisplayArea.Content, "26526", "","WBS");
+new menuItem("26280", "26527", "PAYT-Approval of Detailed Design and Drawings", "./detail/26527.htm", parent.parent.DisplayArea.Content, "26527", "","WBS");
+new menuItem("26280", "26528", "Dismantling flooring, Base concrete, E & M appliances/materials etc. (dismantled materials from E & ", "./detail/26528.htm", parent.parent.DisplayArea.Content, "26528", "","WBS");
+new menuItem("26280", "26529", "PAYT-Dismantling flooring, Base concrete, E & M appliances/materials etc. (dismantled materials from", "./detail/26529.htm", parent.parent.DisplayArea.Content, "26529", "","WBS");
+new menuItem("26280", "26530", "laying of base concrete, Flooring, skirting, external facade work, finishing etc. all complete", "./detail/26530.htm", parent.parent.DisplayArea.Content, "26530", "","WBS");
+new menuItem("26280", "26531", "PAYT-On laying of base concrete, Flooring, skirting, external facade work, finishing etc. all comple", "./detail/26531.htm", parent.parent.DisplayArea.Content, "26531", "","WBS");
+new menuItem("26280", "26532", "plumbing work, painting, gypsum plaster and Painting, door- windows, cladding work, false ceiling et", "./detail/26532.htm", parent.parent.DisplayArea.Content, "26532", "","WBS");
+new menuItem("26280", "26533", "PAYT-On completion of plumbing work, painting, gypsum plaster and Painting, door- windows, cladding ", "./detail/26533.htm", parent.parent.DisplayArea.Content, "26533", "","WBS");
+new menuItem("26280", "26534", "E & M works of existing Station Building", "./detail/26534.htm", parent.parent.DisplayArea.Content, "26534", "","WBS");
+new menuItem("26534", "27125", "Electric Works related", "./detail/27125.htm", parent.parent.DisplayArea.Content, "27125", "","WBS");
+new menuItem("26534", "27126", "E&M services", "./detail/27126.htm", parent.parent.DisplayArea.Content, "27126", "","WBS");
+new menuItem("26534", "27127", "HVAC", "./detail/27127.htm", parent.parent.DisplayArea.Content, "27127", "","WBS");
+new menuItem("26534", "27128", "Markings", "./detail/27128.htm", parent.parent.DisplayArea.Content, "27128", "","WBS");
+new menuItem("26534", "27129", "PA system", "./detail/27129.htm", parent.parent.DisplayArea.Content, "27129", "","WBS");
+new menuItem("26534", "27130", "CCTV", "./detail/27130.htm", parent.parent.DisplayArea.Content, "27130", "","WBS");
+new menuItem("26534", "27131", "Displays", "./detail/27131.htm", parent.parent.DisplayArea.Content, "27131", "","WBS");
+new menuItem("26534", "27132", "WiFi", "./detail/27132.htm", parent.parent.DisplayArea.Content, "27132", "","WBS");
+new menuItem("26534", "27133", "IPIS", "./detail/27133.htm", parent.parent.DisplayArea.Content, "27133", "","WBS");
+new menuItem("26534", "27134", "Digital Clocks", "./detail/27134.htm", parent.parent.DisplayArea.Content, "27134", "","WBS");
+new menuItem("26534", "27135", "Signages", "./detail/27135.htm", parent.parent.DisplayArea.Content, "27135", "","WBS");
+new menuItem("26534", "27136", "Telecom works", "./detail/27136.htm", parent.parent.DisplayArea.Content, "27136", "","WBS");
+new menuItem("26534", "27137", "Etc works", "./detail/27137.htm", parent.parent.DisplayArea.Content, "27137", "","WBS");
+new menuItem("26280", "26535", "PAYT-On completion of related electric works, E&M services,HVAC, markings, PA system, CCTV, Displays", "./detail/26535.htm", parent.parent.DisplayArea.Content, "26535", "","WBS");
+new menuItem("26280", "26536", "Completion, Commissioning, Testing, obtaining necessary NOC’s and handing over to Authority", "./detail/26536.htm", parent.parent.DisplayArea.Content, "26536", "","WBS");
+new menuItem("26280", "26537", "PAYT-Completion, Commissioning, Testing, obtaining necessary NOC’s and handing over to Authority.", "./detail/26537.htm", parent.parent.DisplayArea.Content, "26537", "","WBS");
+new menuItem("26280", "26538", "Milestone End", "./detail/26538.htm", parent.parent.DisplayArea.Content, "26538", "","WBS");
+new menuItem("26280", "26539", "COS-Instructions from AE", "./detail/26539.htm", parent.parent.DisplayArea.Content, "26539", "","WBS");
+new menuItem("26280", "26540", "PAYT-For Change of Scope", "./detail/26540.htm", parent.parent.DisplayArea.Content, "26540", "","WBS");
+new menuItem("26261", "26281", "PM-P-External Works", "./detail/26281.htm", parent.parent.DisplayArea.Content, "26281", "","WBS");
+new menuItem("26281", "26541", "Milestone Start ", "./detail/26541.htm", parent.parent.DisplayArea.Content, "26541", "","WBS");
+new menuItem("26281", "26542", "Submission and approval of designs and drawings ", "./detail/26542.htm", parent.parent.DisplayArea.Content, "26542", "","WBS");
+new menuItem("26281", "26543", "PAYT-Approval of Detailed Design and Drawings", "./detail/26543.htm", parent.parent.DisplayArea.Content, "26543", "","WBS");
+new menuItem("26281", "26544", "levelling work of the entire campus including site clearance", "./detail/26544.htm", parent.parent.DisplayArea.Content, "26544", "","WBS");
+new menuItem("26281", "26545", "PAYT-On completion of levelling work of the entire campus including site clearance", "./detail/26545.htm", parent.parent.DisplayArea.Content, "26545", "","WBS");
+new menuItem("26281", "26546", "Internal Roads with WMM and Bituminous top including surface preparation, kerb channel etc. complet", "./detail/26546.htm", parent.parent.DisplayArea.Content, "26546", "","WBS");
+new menuItem("26546", "27138", "Internal Roads WMM", "./detail/27138.htm", parent.parent.DisplayArea.Content, "27138", "","WBS");
+new menuItem("26546", "27139", "Internal Roads Bituminous top", "./detail/27139.htm", parent.parent.DisplayArea.Content, "27139", "","WBS");
+new menuItem("26546", "27140", "surface preparation, kerb channel etc. complet", "./detail/27140.htm", parent.parent.DisplayArea.Content, "27140", "","WBS");
+new menuItem("26281", "26547", "PAYT-Internal Roads with WMM and Bituminous top including surface preparation, kerb channel etc. com", "./detail/26547.htm", parent.parent.DisplayArea.Content, "26547", "","WBS");
+new menuItem("26281", "26548", "CC pavement & Footpaths, including Kerb stones, base concrete, paver, dressing etc. All complete", "./detail/26548.htm", parent.parent.DisplayArea.Content, "26548", "","WBS");
+new menuItem("26548", "27141", "base concrete,", "./detail/27141.htm", parent.parent.DisplayArea.Content, "27141", "","WBS");
+new menuItem("26548", "27142", "CC pavement", "./detail/27142.htm", parent.parent.DisplayArea.Content, "27142", "","WBS");
+new menuItem("26548", "27143", "Footpaths", "./detail/27143.htm", parent.parent.DisplayArea.Content, "27143", "","WBS");
+new menuItem("26548", "27144", "Kerb stones", "./detail/27144.htm", parent.parent.DisplayArea.Content, "27144", "","WBS");
+new menuItem("26548", "27145", "paver, dressing", "./detail/27145.htm", parent.parent.DisplayArea.Content, "27145", "","WBS");
+new menuItem("26548", "27146", "Etc works", "./detail/27146.htm", parent.parent.DisplayArea.Content, "27146", "","WBS");
+new menuItem("26281", "26549", "PAYT-On completion of CC pavement & Footpaths, including Kerb stones, base concrete, paver, dressing", "./detail/26549.htm", parent.parent.DisplayArea.Content, "26549", "","WBS");
+new menuItem("26281", "26550", "Sewer line", "./detail/26550.htm", parent.parent.DisplayArea.Content, "26550", "","WBS");
+new menuItem("26550", "27147", "Commissioning of sewer line", "./detail/27147.htm", parent.parent.DisplayArea.Content, "27147", "","WBS");
+new menuItem("26281", "26551", "PAYT-On completion and commissioning of Sewer line", "./detail/26551.htm", parent.parent.DisplayArea.Content, "26551", "","WBS");
+new menuItem("26281", "26552", " Filter, stp treated & unfiltered water supply including peripheral and distribution system with all", "./detail/26552.htm", parent.parent.DisplayArea.Content, "26552", "","WBS");
+new menuItem("26552", "27148", "Filter", "./detail/27148.htm", parent.parent.DisplayArea.Content, "27148", "","WBS");
+new menuItem("26552", "27149", "stp treated & unfiltered water supply  including peripheral and distribution system with all accesso", "./detail/27149.htm", parent.parent.DisplayArea.Content, "27149", "","WBS");
+new menuItem("26281", "26553", "PAYT-On completion and commissioning of Filter, stp treated & unfiltered water supply including peri", "./detail/26553.htm", parent.parent.DisplayArea.Content, "26553", "","WBS");
+new menuItem("26281", "26554", "completion and commissioning of storm water drains", "./detail/26554.htm", parent.parent.DisplayArea.Content, "26554", "","WBS");
+new menuItem("26281", "26555", "PAYT-On completion and commissioning of storm water drains.", "./detail/26555.htm", parent.parent.DisplayArea.Content, "26555", "","WBS");
+new menuItem("26281", "26556", "completion and commissioning of Rain Water Harvesting system", "./detail/26556.htm", parent.parent.DisplayArea.Content, "26556", "","WBS");
+new menuItem("26281", "26557", "PAYT-On completion and commissioning of Rain Water Harvesting system", "./detail/26557.htm", parent.parent.DisplayArea.Content, "26557", "","WBS");
+new menuItem("26281", "26558", "completion and commissioning of Trenches for Services", "./detail/26558.htm", parent.parent.DisplayArea.Content, "26558", "","WBS");
+new menuItem("26281", "26559", "PAYT-On completion and commissioning of Trenches for Services", "./detail/26559.htm", parent.parent.DisplayArea.Content, "26559", "","WBS");
+new menuItem("26281", "26560", "Construction of Main entrance gates to station entry and exit complete with RCC structure, brickwork", "./detail/26560.htm", parent.parent.DisplayArea.Content, "26560", "","WBS");
+new menuItem("26560", "27150", "RCC structure", "./detail/27150.htm", parent.parent.DisplayArea.Content, "27150", "","WBS");
+new menuItem("26560", "27151", "brickwork", "./detail/27151.htm", parent.parent.DisplayArea.Content, "27151", "","WBS");
+new menuItem("26560", "27152", "stone work", "./detail/27152.htm", parent.parent.DisplayArea.Content, "27152", "","WBS");
+new menuItem("26560", "27153", "chhatari of Jaisalmer stone", "./detail/27153.htm", parent.parent.DisplayArea.Content, "27153", "","WBS");
+new menuItem("26560", "27154", "stone grills", "./detail/27154.htm", parent.parent.DisplayArea.Content, "27154", "","WBS");
+new menuItem("26560", "27155", "Etc Works", "./detail/27155.htm", parent.parent.DisplayArea.Content, "27155", "","WBS");
+new menuItem("26281", "26561", "PAYT-Construction of Main entrance gates to station entry and exit complete with RCC structure, bric", "./detail/26561.htm", parent.parent.DisplayArea.Content, "26561", "","WBS");
+new menuItem("26281", "26562", "UGT & OHT", "./detail/26562.htm", parent.parent.DisplayArea.Content, "26562", "","WBS");
+new menuItem("26281", "26563", "PAYT-UGT & OHT", "./detail/26563.htm", parent.parent.DisplayArea.Content, "26563", "","WBS");
+new menuItem("26281", "26564", "completion of horticulture work, landscaping work, plantation, cutting/shifting of existing trees as", "./detail/26564.htm", parent.parent.DisplayArea.Content, "26564", "","WBS");
+new menuItem("26564", "27156", "horticulture work", "./detail/27156.htm", parent.parent.DisplayArea.Content, "27156", "","WBS");
+new menuItem("26564", "27157", "landscaping work", "./detail/27157.htm", parent.parent.DisplayArea.Content, "27157", "","WBS");
+new menuItem("26564", "27158", "plantation, cutting/shifting of existing trees as per scope of work", "./detail/27158.htm", parent.parent.DisplayArea.Content, "27158", "","WBS");
+new menuItem("26564", "27159", "grassing, running tracks", "./detail/27159.htm", parent.parent.DisplayArea.Content, "27159", "","WBS");
+new menuItem("26564", "27160", "Etc works", "./detail/27160.htm", parent.parent.DisplayArea.Content, "27160", "","WBS");
+new menuItem("26281", "26565", "PAYT-On completion of horticulture work, landscaping work, plantation, cutting/shifting of existing ", "./detail/26565.htm", parent.parent.DisplayArea.Content, "26565", "","WBS");
+new menuItem("26281", "26566", "Boundary wall including finishing & facade work etc.", "./detail/26566.htm", parent.parent.DisplayArea.Content, "26566", "","WBS");
+new menuItem("26566", "27161", "Boundary wall", "./detail/27161.htm", parent.parent.DisplayArea.Content, "27161", "","WBS");
+new menuItem("26566", "27162", "finishing", "./detail/27162.htm", parent.parent.DisplayArea.Content, "27162", "","WBS");
+new menuItem("26566", "27163", "facade work", "./detail/27163.htm", parent.parent.DisplayArea.Content, "27163", "","WBS");
+new menuItem("26566", "27164", "Etc works", "./detail/27164.htm", parent.parent.DisplayArea.Content, "27164", "","WBS");
+new menuItem("26281", "26567", "PAYT-On completion of boundary wall including finishing & facade work etc.", "./detail/26567.htm", parent.parent.DisplayArea.Content, "26567", "","WBS");
+new menuItem("26281", "26568", "Completion, Commissioning, Testing, obtaining necessary NOC’s and handing over to Authority", "./detail/26568.htm", parent.parent.DisplayArea.Content, "26568", "","WBS");
+new menuItem("26281", "26569", "PAYT-Completion, Commissioning, Testing, obtaining necessary NOC’s and handing over to Authority.", "./detail/26569.htm", parent.parent.DisplayArea.Content, "26569", "","WBS");
+new menuItem("26281", "26570", "Milestone End", "./detail/26570.htm", parent.parent.DisplayArea.Content, "26570", "","WBS");
+new menuItem("26281", "26571", "COS-Instructions from AE", "./detail/26571.htm", parent.parent.DisplayArea.Content, "26571", "","WBS");
+new menuItem("26281", "26572", "PAYT-For Change of Scope", "./detail/26572.htm", parent.parent.DisplayArea.Content, "26572", "","WBS");
+new menuItem("26261", "26282", "PM-Q-BUS BAY (PEDESTRIAN CANOPY)", "./detail/26282.htm", parent.parent.DisplayArea.Content, "26282", "","WBS");
+new menuItem("26282", "26573", "Milestone Start ", "./detail/26573.htm", parent.parent.DisplayArea.Content, "26573", "","WBS");
+new menuItem("26282", "26574", "Submission and approval of designs and drawings ", "./detail/26574.htm", parent.parent.DisplayArea.Content, "26574", "","WBS");
+new menuItem("26282", "26575", "PAYT-Approval of Detailed Design and Drawings", "./detail/26575.htm", parent.parent.DisplayArea.Content, "26575", "","WBS");
+new menuItem("26282", "26576", "Foundation work (open foundations / pile foundations including pile caps) and testing, up to plinth ", "./detail/26576.htm", parent.parent.DisplayArea.Content, "26576", "","WBS");
+new menuItem("26576", "27165", "Foundation work (open foundations / pile foundations including pile caps) and testing, up to plinth ", "./detail/27165.htm", parent.parent.DisplayArea.Content, "27165", "","WBS");
+new menuItem("26282", "26577", "PAYT-On completion of Foundation work (open foundations/pile foundations including pile caps) and te", "./detail/26577.htm", parent.parent.DisplayArea.Content, "26577", "","WBS");
+new menuItem("26282", "26578", "Superstructure Work", "./detail/26578.htm", parent.parent.DisplayArea.Content, "26578", "","WBS");
+new menuItem("26578", "27166", "Columns", "./detail/27166.htm", parent.parent.DisplayArea.Content, "27166", "","WBS");
+new menuItem("26578", "27167", "Roof", "./detail/27167.htm", parent.parent.DisplayArea.Content, "27167", "","WBS");
+new menuItem("26578", "27168", "Etc works", "./detail/27168.htm", parent.parent.DisplayArea.Content, "27168", "","WBS");
+new menuItem("26282", "26579", "PAYT-On completion of superstructure work including columns, roof etc.", "./detail/26579.htm", parent.parent.DisplayArea.Content, "26579", "","WBS");
+new menuItem("26282", "26580", "facade work, railing, Jaisalmer stone Chhatries, railing, grills, finishing work, flooring work, bas", "./detail/26580.htm", parent.parent.DisplayArea.Content, "26580", "","WBS");
+new menuItem("26282", "26581", "base concrete,", "./detail/26581.htm", parent.parent.DisplayArea.Content, "26581", "","WBS");
+new menuItem("26581", "27169", "facade work", "./detail/27169.htm", parent.parent.DisplayArea.Content, "27169", "","WBS");
+new menuItem("26581", "27170", "flooring work", "./detail/27170.htm", parent.parent.DisplayArea.Content, "27170", "","WBS");
+new menuItem("26581", "27171", "finishing work", "./detail/27171.htm", parent.parent.DisplayArea.Content, "27171", "","WBS");
+new menuItem("26581", "27172", "railing", "./detail/27172.htm", parent.parent.DisplayArea.Content, "27172", "","WBS");
+new menuItem("26581", "27173", "Jaisalmer stone Chhatries", "./detail/27173.htm", parent.parent.DisplayArea.Content, "27173", "","WBS");
+new menuItem("26581", "27175", "grills", "./detail/27175.htm", parent.parent.DisplayArea.Content, "27175", "","WBS");
+new menuItem("26581", "27176", "Etc works", "./detail/27176.htm", parent.parent.DisplayArea.Content, "27176", "","WBS");
+new menuItem("26282", "26582", "PAYT-On completion of facade work, railing, Jaisalmer stone Chhatries, railing, grills, finishing wo", "./detail/26582.htm", parent.parent.DisplayArea.Content, "26582", "","WBS");
+new menuItem("26282", "26583", "E & M works of Bus Bay Pedestrian Canoy", "./detail/26583.htm", parent.parent.DisplayArea.Content, "26583", "","WBS");
+new menuItem("26583", "27177", "Electric Works related", "./detail/27177.htm", parent.parent.DisplayArea.Content, "27177", "","WBS");
+new menuItem("26583", "27178", "E&M services", "./detail/27178.htm", parent.parent.DisplayArea.Content, "27178", "","WBS");
+new menuItem("26583", "27179", "Markings", "./detail/27179.htm", parent.parent.DisplayArea.Content, "27179", "","WBS");
+new menuItem("26583", "27180", "PA system", "./detail/27180.htm", parent.parent.DisplayArea.Content, "27180", "","WBS");
+new menuItem("26583", "27181", "CCTV", "./detail/27181.htm", parent.parent.DisplayArea.Content, "27181", "","WBS");
+new menuItem("26583", "27182", "Displays", "./detail/27182.htm", parent.parent.DisplayArea.Content, "27182", "","WBS");
+new menuItem("26583", "27183", "Signages", "./detail/27183.htm", parent.parent.DisplayArea.Content, "27183", "","WBS");
+new menuItem("26583", "27184", "Drainage", "./detail/27184.htm", parent.parent.DisplayArea.Content, "27184", "","WBS");
+new menuItem("26583", "27185", "Etc works", "./detail/27185.htm", parent.parent.DisplayArea.Content, "27185", "","WBS");
+new menuItem("26282", "26584", "PAYT-On completion of related electric works, E&M services, markings, PA system, CCTV, Displays, sig", "./detail/26584.htm", parent.parent.DisplayArea.Content, "26584", "","WBS");
+new menuItem("26282", "26585", "Completion, Commissioning, Testing, obtaining necessary NOC’s and handing over to Authority", "./detail/26585.htm", parent.parent.DisplayArea.Content, "26585", "","WBS");
+new menuItem("26282", "26586", "PAYT-Completion, Commissioning, Testing, obtaining necessary NOC’s and handing over to Authority", "./detail/26586.htm", parent.parent.DisplayArea.Content, "26586", "","WBS");
+new menuItem("26282", "26587", "Milestone End", "./detail/26587.htm", parent.parent.DisplayArea.Content, "26587", "","WBS");
+new menuItem("26282", "26588", "COS-Instructions from AE", "./detail/26588.htm", parent.parent.DisplayArea.Content, "26588", "","WBS");
+new menuItem("26282", "26589", "PAYT-For Change of Scope", "./detail/26589.htm", parent.parent.DisplayArea.Content, "26589", "","WBS");
+new menuItem("26261", "26283", "PM-R-OTHER MISC ENGINEERING WORKS", "./detail/26283.htm", parent.parent.DisplayArea.Content, "26283", "","WBS");
+new menuItem("26283", "26590", "Start Milestone", "./detail/26590.htm", parent.parent.DisplayArea.Content, "26590", "","WBS");
+new menuItem("26283", "26591", "Demolition of existing Building", "./detail/26591.htm", parent.parent.DisplayArea.Content, "26591", "","WBS");
+new menuItem("26591", "27186", "Demolition of existing Building", "./detail/27186.htm", parent.parent.DisplayArea.Content, "27186", "","WBS");
+new menuItem("26591", "27187", "Dismantling Work", "./detail/27187.htm", parent.parent.DisplayArea.Content, "27187", "","WBS");
+new menuItem("26591", "27188", "CRRM", "./detail/27188.htm", parent.parent.DisplayArea.Content, "27188", "","WBS");
+new menuItem("26283", "26592", "PAYT-Weightage  in percentage  to the Contract  Price  for DISMANTLING  WORK  and CRRM including dem", "./detail/26592.htm", parent.parent.DisplayArea.Content, "26592", "","WBS");
+new menuItem("26283", "26593", "Art work", "./detail/26593.htm", parent.parent.DisplayArea.Content, "26593", "","WBS");
+new menuItem("26283", "26594", "PAYT- Art work (1 %) as per annexure 8 of schedule B, supply of furniture and other items (1.5%): to", "./detail/26594.htm", parent.parent.DisplayArea.Content, "26594", "","WBS");
+new menuItem("26283", "26595", "Works for GREEN BUILDING", "./detail/26595.htm", parent.parent.DisplayArea.Content, "26595", "","WBS");
+new menuItem("26283", "26596", "PAYT-Successful completion of the buildings and all the works as per GREEN BUILDING NORMS and submis", "./detail/26596.htm", parent.parent.DisplayArea.Content, "26596", "","WBS");
+new menuItem("26283", "26597", "Residual Engineering Works", "./detail/26597.htm", parent.parent.DisplayArea.Content, "26597", "","WBS");
+new menuItem("26597", "27189", "Construction of boundary wall including finishing, facade work etc. ", "./detail/27189.htm", parent.parent.DisplayArea.Content, "27189", "","WBS");
+new menuItem("26597", "27190", "Complete Signage, information boards and posts ", "./detail/27190.htm", parent.parent.DisplayArea.Content, "27190", "","WBS");
+new menuItem("26597", "27191", "Complete Drainage system of the Railway Station ", "./detail/27191.htm", parent.parent.DisplayArea.Content, "27191", "","WBS");
+new menuItem("26597", "27192", "Diversion of existing services ", "./detail/27192.htm", parent.parent.DisplayArea.Content, "27192", "","WBS");
+new menuItem("26597", "27193", "Supply, installation & commissioning of Furniture ", "./detail/27193.htm", parent.parent.DisplayArea.Content, "27193", "","WBS");
+new menuItem("26597", "27194", "Completion of main Gates including facade etc ", "./detail/27194.htm", parent.parent.DisplayArea.Content, "27194", "","WBS");
+new menuItem("26597", "27195", "Completion, handing over and approval from Authorities", "./detail/27195.htm", parent.parent.DisplayArea.Content, "27195", "","WBS");
+new menuItem("26283", "26598", "PAYT-Residual Engineering Works", "./detail/26598.htm", parent.parent.DisplayArea.Content, "26598", "","WBS");
+new menuItem("26283", "26599", "Milestone End", "./detail/26599.htm", parent.parent.DisplayArea.Content, "26599", "","WBS");
+new menuItem("26283", "26600", "COS-Instructions from AE", "./detail/26600.htm", parent.parent.DisplayArea.Content, "26600", "","WBS");
+new menuItem("26283", "26601", "PAYT-For Change of Scope", "./detail/26601.htm", parent.parent.DisplayArea.Content, "26601", "","WBS");
+new menuItem("26261", "26284", "PM-S-INTEGRATED TESTING & COMMISSIONING", "./detail/26284.htm", parent.parent.DisplayArea.Content, "26284", "","WBS");
+new menuItem("26284", "26602", "Milestone Start ", "./detail/26602.htm", parent.parent.DisplayArea.Content, "26602", "","WBS");
+new menuItem("26284", "26603", "Successful completion of Integrated testing and commissioning ", "./detail/26603.htm", parent.parent.DisplayArea.Content, "26603", "","WBS");
+new menuItem("26603", "27196", "Integrated Testing", "./detail/27196.htm", parent.parent.DisplayArea.Content, "27196", "","WBS");
+new menuItem("26603", "27197", "Commissioning ", "./detail/27197.htm", parent.parent.DisplayArea.Content, "27197", "","WBS");
+new menuItem("26284", "26604", "PAYT-Successful completion of Integrated testing and commissioning", "./detail/26604.htm", parent.parent.DisplayArea.Content, "26604", "","WBS");
+new menuItem("26284", "26605", "Milestone End", "./detail/26605.htm", parent.parent.DisplayArea.Content, "26605", "","WBS");
+new menuItem("26284", "26606", "COS-Instructions from AE", "./detail/26606.htm", parent.parent.DisplayArea.Content, "26606", "","WBS");
+new menuItem("26284", "26607", "PAYT-For Change of Scope", "./detail/26607.htm", parent.parent.DisplayArea.Content, "26607", "","WBS");
+new menuItem("26261", "26285", "PM-T-END OF PROJECT MILESTONE", "./detail/26285.htm", parent.parent.DisplayArea.Content, "26285", "","WBS");
+new menuItem("26261", "26286", "PM-U-FINAL BILL ", "./detail/26286.htm", parent.parent.DisplayArea.Content, "26286", "","WBS");
+new menuItem("26261", "26287", "PM-V-RELEASE OF SECURITY DEPOSIT", "./detail/26287.htm", parent.parent.DisplayArea.Content, "26287", "","WBS");
+new menuItem("26261", "26288", "PM-W-RELEASE OF PERFORMANCE GUARANTEE", "./detail/26288.htm", parent.parent.DisplayArea.Content, "26288", "","WBS");
+ }
+
+
+//-->
+
+</script>
+</head>
+
+<body bgcolor="#FFFFFF" text="#FFFFFF">
+
+<script language="JavaScript1.1">
+<!--
+  setUp();
+  reloadWebPage();
+//-->
+</script>
+
+</body>
+</html>
